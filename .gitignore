@@ -1,2 +1,6 @@
 # Ignore files created during simulation
 fpglappy/fpglappy.runs/*
+
+java_command_handlers.wdf
+synthesis.wdf
+webtalk_pa.xml
