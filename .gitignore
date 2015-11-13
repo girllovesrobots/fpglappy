@@ -1,0 +1,2 @@
+# Ignore files created during simulation
+fpglappy/fpglappy.runs/*
