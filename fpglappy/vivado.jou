@@ -1,0 +1,24 @@
+#-----------------------------------------------------------
+# Vivado v2015.2 (64-bit)
+# SW Build 1266856 on Fri Jun 26 16:35:25 MDT 2015
+# IP Build 1264090 on Wed Jun 24 14:22:01 MDT 2015
+# Start of session at: Fri Nov 13 14:42:56 2015
+# Process ID: 31379
+# Log file: /home/jmend/Dropbox (MIT)/MIT Sophomore Fall/6.111/final_project/fpglappy/fpglappy/vivado.log
+# Journal file: /home/jmend/Dropbox (MIT)/MIT Sophomore Fall/6.111/final_project/fpglappy/fpglappy/vivado.jou
+#-----------------------------------------------------------
+open_project fpglappy.xpr
+l
+help
+SysGen
+Report
+help
+help Bitgen
+help -category Bitgen
+calc_config_time
+ls
+synthesis
+help -category synthesis
+export_bd_synth
+export_bd_synth fpglappy.xpr 
+export_bd_synth fpglappy
