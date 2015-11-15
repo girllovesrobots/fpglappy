@@ -45,8 +45,12 @@
 
 module fpglappy(
     input CLK100MHZ,
+    input SD_CD,
     input[15:0] SW,
     input BTNC, BTNU, BTNL, BTNR, BTND,
+    output SD_RESET,
+    output SD_SCK,
+    output SD_CMD,
     output[3:0] VGA_R,
     output[3:0] VGA_B,
     output[3:0] VGA_G,
@@ -57,7 +61,8 @@ module fpglappy(
     output LED17_B, LED17_G, LED17_R,
     output[15:0] LED,
     output[7:0] SEG,  // segments A-G (0-6), DP (7)
-    output[7:0] AN    // Display 0-7
+    output[7:0] AN,    // Display 0-7
+    inout[3:0] SD_DAT
     );
     // Create 25mhz system clock
     wire clock_25mhz;
@@ -75,8 +80,20 @@ module fpglappy(
 
     wire [9:0] player_location [2:0];
 
-    vision tracking(.clk(clock_25mh),.x_pos(player_location[0]), .y_pos(player_location[1]),
-    .z_pos(player_location[2]));
+  //  vision tracking(.clk(clock_25mh),.x_pos(player_location[0]), .y_pos(player_location[1]),
+  //  .z_pos(player_location[2]));
+  
+    wire src_1_req, src_1_done, src_1_rd, src_1_en;
+    wire [31:0] src_1_addr;
+    wire [7:0] dout;
+    wire ready, byte_available, ready_for_next_byte; 
+    
+    // Distributes access to SD card among modules
+    sdMaster sdMaster(.clock(clock_25mhz),.reset(0),.src_1_req(src_1_req),
+        .src_1_done(src_1_done),.src_1_addr(src_1_addr),.src_1_rd(src_1_rd),
+        .SD_CD(SD_CD),.src_1_en(src_1_en),.dout(dout),.byte_available(byte_available),
+        .ready_for_next_byte(ready_for_next_byte),.ready(ready),.SD_RESET(SD_RESET),
+        .SD_SCK(SD_SCK),.SD_CMD(SD_CMD),.SD_DAT(SD_DAT));
 
     //////////////////////////////////////////////////////////////////////////////////
     // sample Verilog to generate color bars
@@ -86,9 +103,12 @@ module fpglappy(
     vga vga1(.vga_clock(clock_25mhz),.hcount(hcount),.vcount(vcount),
           .hsync(hsync),.vsync(vsync),.at_display_area(at_display_area));
 
-    assign VGA_R = at_display_area ? {4{hcount[7]}} : 0;
-    assign VGA_G = at_display_area ? {4{hcount[6]}} : 0;
-    assign VGA_B = at_display_area ? {4{hcount[5]}} : 0;
+    spriteline spriteline1(.birdY(200),
+        .obs1x(175),.obs1y(200),.obs1en(1),
+        .obs2x(350),.obs2y(400),.obs2en(1),
+        .obs3x(600),.obs3y(300),.obs3en(1),
+        .hcount(hcount), .vcount(vcount),.at_display_area(at_display_area),.VGA_RGB({VGA_R,VGA_G,VGA_B}));
+
     assign VGA_HS = ~hsync;
     assign VGA_VS = ~vsync;
 
