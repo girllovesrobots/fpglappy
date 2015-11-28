@@ -102,12 +102,15 @@ module fpglappy(
     wire hsync, vsync, at_display_area;
     vga vga1(.vga_clock(clock_25mhz),.hcount(hcount),.vcount(vcount),
           .hsync(hsync),.vsync(vsync),.at_display_area(at_display_area));
+          
+    wire[8:0] backgroundPos = 0; // Replace to make scrolling
 
     spriteline spriteline1(.birdY(200),
         .obs1x(175),.obs1y(200),.obs1en(1),
         .obs2x(350),.obs2y(400),.obs2en(1),
         .obs3x(600),.obs3y(300),.obs3en(1),
-        .hcount(hcount), .vcount(vcount),.at_display_area(at_display_area),.VGA_RGB({VGA_R,VGA_G,VGA_B}));
+        .hcount(hcount), .vcount(vcount), .backgroundPos(backgroundPos),
+        .at_display_area(at_display_area),.VGA_RGB({VGA_R,VGA_G,VGA_B}));
 
     assign VGA_HS = ~hsync;
     assign VGA_VS = ~vsync;
