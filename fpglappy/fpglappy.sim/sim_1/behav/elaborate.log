@@ -1,0 +1,19 @@
+Vivado Simulator 2015.2
+Copyright 1986-1999, 2001-2015 Xilinx, Inc. All Rights Reserved.
+Running: /opt/Xilinx/Vivado/2015.2/bin/unwrapped/lnx64.o/xelab -wto 1f2a2a9be04449c6a7b45bbd10212b42 --debug typical --relax --mt 8 -L xil_defaultlib -L unisims_ver -L unimacro_ver -L secureip --snapshot v_sim_behav xil_defaultlib.v_sim xil_defaultlib.glbl -log elaborate.log 
+Using 8 slave threads.
+Starting static elaboration
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling module xil_defaultlib.OV7670_config_rom
+Compiling module xil_defaultlib.OV7670_config(CLK_FREQ=25000000)
+Compiling module xil_defaultlib.SCCB_interface(CLK_FREQ=25000000...
+Compiling module xil_defaultlib.camera_configure
+Compiling module xil_defaultlib.camera_read
+Compiling module xil_defaultlib.divider
+Compiling module xil_defaultlib.vision
+Compiling module xil_defaultlib.v_sim
+Compiling module xil_defaultlib.glbl
+Built simulation snapshot v_sim_behav

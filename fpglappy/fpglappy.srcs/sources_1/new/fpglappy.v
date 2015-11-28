@@ -81,14 +81,14 @@ module fpglappy(
     assign SEG[7] = 1'b1;
 
     // Wires needed for BRAM
-    wire [3:0] addra;
-    wire [15:0] dina;
-    wire [15:0] douta;
+    wire [18:0] addra;
+    wire [7:0] dina;
+    wire [7:0] douta;
     wire wea;
 
-    wire [3:0] addrb;
-    wire [15:0] dinb;
-    wire [15:0] doutb;
+    reg [18:0] addrb;
+    wire [7:0] dinb;
+    wire [7:0] doutb;
     wire web;
 
     // Assign Multi-color LEDs
@@ -107,10 +107,14 @@ module fpglappy(
     // Instantiate Vision Module
 
     wire [9:0] player_location [2:0];
+    reg [19:0] next_pixel;
+    wire done_cam_config;
+    wire start_config;
 
     assign XCLK_C = clock_25mhz;
 
-    vision tracking(.clk(clock_25mhz),
+    vision tracking(
+        .clk(clock_25mhz),
         .x_pos(player_location[0]),
         .y_pos(player_location[1]),
         .z_pos(player_location[2]),
@@ -124,7 +128,10 @@ module fpglappy(
         .pwdn_cam(PWDN_C),
         .addra(addra),
         .dina(dina),
-        .wea(wea)
+        .wea(wea),
+        .done_cam_config(done_cam_config),
+        .start_config(start_config),
+        .button_input(BTNC)
     );
 
     // BRAM Test
@@ -142,12 +149,20 @@ module fpglappy(
         .web(web)
     );
 
+    // Initialize Things
+    initial begin
+        addrb <= 0;
+        LED <= 0;
+    end
+
     /* TESTBITJIWJAOIDJWOIAJDoiw */
-    assign addrb = 5;
     assign web = 0;
     assign dinb = 0;
-    always@(*) LED <= douta;
-    assign data = doutb;
+    always@(*) begin
+        LED[0] <= done_cam_config;
+        LED[1] <= start_config;
+    end
+    assign data = addrb;
     /* TESTBITJIWJAOIDJWOIAJDoiw */
 
     //////////////////////////////////////////////////////////////////////////////////
@@ -158,16 +173,15 @@ module fpglappy(
     vga vga1(.vga_clock(clock_25mhz),.hcount(hcount),.vcount(vcount),
           .hsync(hsync),.vsync(vsync),.at_display_area(at_display_area));
 
-    //assign VGA_R = 4'b1111;
-    //assign VGA_G = 4'b1111;
-    //assign VGA_B = 4'b0000;
-    assign VGA_R = at_display_area ? douta[14:11] : 0;
-    assign VGA_G = at_display_area ? douta[8:5] : 0;
-    assign VGA_B = at_display_area ? douta[3:0] : 0;
-    //assign VGA_R = doutb[14:11];
-    //assign VGA_G = doutb[8:5];
-    //assign VGA_B = doutb[3:0];
-    //assign VGA_B = at_display_area ? {4{hcount[5]}} : 0;
+    always@(posedge clock_25mhz) begin
+        if (hcount < 640 && vcount < 480)
+            addrb <= next_pixel;
+            next_pixel <= hcount + 480*vcount;
+    end
+
+    assign VGA_R = at_display_area ? 0 : 0;
+    assign VGA_G = at_display_area ? 0 : 0;
+    assign VGA_B = at_display_area ? doutb[3:0] : 0;
     assign VGA_HS = ~hsync;
     assign VGA_VS = ~vsync;
 
