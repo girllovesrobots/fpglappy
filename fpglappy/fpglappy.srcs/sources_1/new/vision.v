@@ -29,8 +29,9 @@ module vision(
     output reg reset_cam = 1, // Output to Camera (vision)
     output reg pwdn_cam = 0, // Output to Camera (vision)
     output reg [3:0] addra,
-    output reg [7:0] dina,
-    output reg wea
+    output reg [15:0] dina,
+    output reg wea,
+    output wire done_cam_config
     );
 
     // Initialize Registers
@@ -46,10 +47,7 @@ module vision(
     // Initialize Camera Config Module
     reg start;
     reg started;
-    wire done;
-    // TODO: Change this back to 31-bit or something
-    //integer cur_pixel;
-    reg [7:0] cur_pixel;
+    integer cur_pixel;
 
     camera_configure config_cam (.clk(clk), .start(start), .sioc(sioc),
     .siod(siod), .done(done));
@@ -77,21 +75,23 @@ module vision(
         end
         else start <= 0;
 
-        /* Write valid pixels to memory */
-        if (clock_1hz) begin
+        // Write valid pixels to memory 
+        //if (clock_1hz) begin
+            //addra <= 4'd5;
+            //dina <= 16'hFFFF;
+            //cur_pixel <= 1 + cur_pixel;
+            //wea <= 1;
+        //end
+        //else wea <= 0;
+        if(pixel_valid)
+        begin
             addra <= 4'd5;
-            dina <= cur_pixel;
-            cur_pixel <= 1 + cur_pixel;
+            dina <= pixel_data;
             wea <= 1;
+            // TODO Change this back
+            cur_pixel <= (!frame_done) ? cur_pixel + 1 : 0;
         end
         else wea <= 0;
-        //if(pixel_valid)
-        //begin
-            //addra <= cur_pixel;
-            //dina <= pixel_data[4:0];
-            //wea <= 1;
-            //cur_pixel <= (!frame_done) ? cur_pixel + 1 : 0;
-        //end
     end
 
 endmodule

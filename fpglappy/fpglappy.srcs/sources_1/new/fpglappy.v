@@ -81,23 +81,23 @@ module fpglappy(
     assign SEG[7] = 1'b1;
 
     // Wires needed for BRAM
-    wire [18:0] addra;
-    wire [7:0] dina;
-    wire [7:0] douta;
+    wire [3:0] addra;
+    wire [15:0] dina;
+    wire [15:0] douta;
     wire wea;
 
-    wire [18:0] addrb;
-    wire [7:0] dinb;
-    wire [7:0] doutb;
+    wire [3:0] addrb;
+    wire [15:0] dinb;
+    wire [15:0] doutb;
     wire web;
 
     // Assign Multi-color LEDs
-    assign LED16_B = 1;
-    assign LED16_G = 1;
-    assign LED16_R = 1;
-    assign LED17_B = 1;
-    assign LED17_G = 1;
-    assign LED17_R = 1;
+    assign LED16_B = 0;
+    assign LED16_G = 0;
+    assign LED16_R = 0;
+    assign LED17_B = 0;
+    assign LED17_G = 0;
+    assign LED17_R = 0;
 
 
     // 1 Second Clock
@@ -158,9 +158,15 @@ module fpglappy(
     vga vga1(.vga_clock(clock_25mhz),.hcount(hcount),.vcount(vcount),
           .hsync(hsync),.vsync(vsync),.at_display_area(at_display_area));
 
-    assign VGA_R = 0;
-    assign VGA_G = 0;
-    assign VGA_B = doutb[7:4];
+    //assign VGA_R = 4'b1111;
+    //assign VGA_G = 4'b1111;
+    //assign VGA_B = 4'b0000;
+    assign VGA_R = at_display_area ? douta[14:11] : 0;
+    assign VGA_G = at_display_area ? douta[8:5] : 0;
+    assign VGA_B = at_display_area ? douta[3:0] : 0;
+    //assign VGA_R = doutb[14:11];
+    //assign VGA_G = doutb[8:5];
+    //assign VGA_B = doutb[3:0];
     //assign VGA_B = at_display_area ? {4{hcount[5]}} : 0;
     assign VGA_HS = ~hsync;
     assign VGA_VS = ~vsync;
