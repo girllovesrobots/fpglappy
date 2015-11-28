@@ -112,6 +112,8 @@ module fpglappy(
     wire start_config;
 
     assign XCLK_C = clock_25mhz;
+    assign RESET_C = 0;
+    assign PWDN_C = 0;
 
     vision tracking(
         .clk(clock_25mhz),
@@ -124,8 +126,6 @@ module fpglappy(
         .href(HREF_C),
         .pclk(PCLK_C),
         .p_data(JA),
-        .reset_cam(RESET_C),
-        .pwdn_cam(PWDN_C),
         .addra(addra),
         .dina(dina),
         .wea(wea),
@@ -137,8 +137,8 @@ module fpglappy(
     // BRAM Test
 
     blk_mem block_memory(
-        .clka(clock_25mhz),
-        .clkb(clock_25mhz),
+        .clka(CLK100MHZ),
+        .clkb(CLK100MHZ),
         .addra(addra),
         .dina(dina),
         .douta(douta),
@@ -175,13 +175,15 @@ module fpglappy(
 
     always@(posedge clock_25mhz) begin
         if (hcount < 640 && vcount < 480)
+        begin
             addrb <= next_pixel;
-            next_pixel <= hcount + 480*vcount;
+            next_pixel <= hcount + 640*vcount;
+        end
     end
 
-    assign VGA_R = at_display_area ? 0 : 0;
-    assign VGA_G = at_display_area ? 0 : 0;
-    assign VGA_B = at_display_area ? doutb[3:0] : 0;
+    assign VGA_R = at_display_area ? doutb[7:6] : 0;
+    assign VGA_G = at_display_area ? doutb[5:2] : 0;
+    assign VGA_B = at_display_area ? doutb[1:0] : 0;
     assign VGA_HS = ~hsync;
     assign VGA_VS = ~vsync;
 

@@ -26,7 +26,7 @@ module vision(
     input wire href, // Input from Camera (camera_read)
     input wire pclk, // Input from Camera (camera_read)
     input wire [7:0] p_data, // Input from Camera (camera_read)
-    output reg reset_cam = 1, // Output to Camera (vision)
+    output reg reset_cam = 0, // Output to Camera (vision)
     output reg pwdn_cam = 0, // Output to Camera (vision)
     output reg [18:0] addra,
     output reg [7:0] dina,
@@ -72,36 +72,33 @@ module vision(
     divider divide(.clock25mhz(clk), .clock1hz(clock_1hz));
 
     // Writing to Memory
-    always@(posedge clk)
+    always@(posedge pclk)
     begin
         start_config <= start;
+
         if (!started || button_input) begin
             start <= 1;
             started <= 1;
             wea <= 0;
         end
-        else if(pixel_valid && cap)
+
+        else if(pixel_valid)
         begin
             start <= 0;
-            dina <= pixel_data[7:0];
-            //if (cur_pixel % 2 == 0)
-                //dina <= pixel_data[7:0];
-            //else
-                //dina <= pixel_data[7:0];
+            dina <= {pixel_data[15:14], pixel_data[10:7], pixel_data[4:3]};
             addra <= cur_pixel;
             wea <= 1;
-            cur_pixel <= (!frame_done) ? cur_pixel + 1 : 0;
             cap <= (frame_done) ? 0 : cap;
         end
+
         else begin
             wea <= 0;
             start <= 0;
         end
 
-        if (clock_1hz) begin
-            cap <= 1;
+        if (frame_done)
             cur_pixel <= 0;
-        end
+        else if (pixel_valid) cur_pixel <= cur_pixel + 1;
     end
 
 endmodule
