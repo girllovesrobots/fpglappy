@@ -159,8 +159,9 @@ module fpglappy(
     assign web = 0;
     assign dinb = 0;
     always@(*) begin
-        LED[0] <= done_cam_config;
-        LED[1] <= start_config;
+        //LED[0] <= done_cam_config;
+        //LED[1] <= start_config;
+        LED <= doutb;
     end
     assign data = addrb;
     /* TESTBITJIWJAOIDJWOIAJDoiw */
@@ -181,9 +182,9 @@ module fpglappy(
         end
     end
 
-    assign VGA_R = at_display_area ? doutb[7:6] : 0;
+    assign VGA_R = at_display_area ? {doutb[7:6], 2'b0} : 0;
     assign VGA_G = at_display_area ? doutb[5:2] : 0;
-    assign VGA_B = at_display_area ? doutb[1:0] : 0;
+    assign VGA_B = at_display_area ? {doutb[1:0], 2'b0} : 0;
     assign VGA_HS = ~hsync;
     assign VGA_VS = ~vsync;
 
