@@ -9,16 +9,12 @@ FPGA implementation of Flappy Bird on the Nexys 4.
 - Video
 - Audio
 
-###Hierarchy of Blocks  
-**bold** references files  
-*italics* references modules  
+###Hierarchy of Blocks
 
-(Tip: to get things to show up on the next, line put two empty spaces at the end of the line)
-
--**fglappy.v** //references all submodules  
----*debouncer* module //debounce switch/button inputs  
----**gamelogic.v** //reference the following 4 modules  
-------*gamestate* module //handles different state transitions  
-------*physics* module //determines if jump occured while in playstate  
-------*highscore* module //saves highest score thus far  
-------*timer* module //timer between end of game and highscore display screen  
+-fglappy //references all submodules
+---debouncer //debounce switch/button inputs
+---gamelogic //reference the following 4 modules
+------gamestate //handles different state transitions
+------physics //determines if jump occured while in playstate
+------highscore //saves highest score thus far
+------timer //timer between end of game and highscore display screen
