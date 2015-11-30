@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+﻿`timescale 1ns / 1ps
 /////////////////////////////////////////////////////////////////////////////////////////////
 //
 //
@@ -103,10 +103,7 @@ module fpglappy(
     wire [9:0] bird_x, bird_y; //Bird has format x-coord, y-coord
     wire [9:0] prev_player_locx, prev_players_locy; //Keeps track of previous player location
     wire [9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y; //x and y coords for the obstacles
-    
-    reg prev_enable;
-    initial prev_enable = 0;
-    
+
     wire collision, jump;
     wire hs_enable, sound_background, sound_collide, sound_jump;
     wire showbit;

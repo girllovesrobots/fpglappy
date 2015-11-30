@@ -105,15 +105,17 @@ endmodule
 //////////////////////////////////////////////////////////////////////////////////
 // Physics module: sets rate of bird movement (jumping/falling)
 //////////////////////////////////////////////////////////////////////////////////
-module physics(input clock,
-               input prev_enable, 
+module physics(input clock, 
                input [9:0] player_x, player_y,
                output reg jump,
                output reg [9:0] bird_x, bird_y, prev_player_locx, prev_player_locy
                );
+	reg prev_enable;
+	initial prev_enable =0;
         always @(posedge clock) begin
             if (prev_enable ==0) begin
                 bird_y <= 500;
+		prev_enable =1;
             //don't compare the two locations
             end
             //otherwise compare the two y-coord locations
