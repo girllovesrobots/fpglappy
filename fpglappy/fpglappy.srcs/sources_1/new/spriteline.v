@@ -22,7 +22,7 @@
 
 module spriteline(
     input vsync,
-    input [9:0] birdY,
+    input [9:0] birdY,birdX,
     input [9:0] obs1x,obs2x,obs3x,
     input [9:0] obs1y,obs2y,obs3y,
     input obs1en,obs2en,obs3en,
@@ -47,7 +47,7 @@ module spriteline(
     
     // Bird Sprite
     wire [11:0] birdOut;
-    sprite bird(.x(200),.y(birdY),.hcount(hcount),.vcount(vcount),.enable(1),.pixelIn(background),.pixelOut(birdOut));
+    sprite bird(.x(birdX),.y(birdY),.hcount(hcount),.vcount(vcount),.enable(1),.pixelIn(background),.pixelOut(birdOut));
     
     // Obstacles
     wire[10:0] pipeMemAddress;

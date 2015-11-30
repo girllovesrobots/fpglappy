@@ -46,7 +46,7 @@ module fpglappy(
     input CLK100MHZ,
     input SD_CD,
     input[15:0] SW,
-    input BTNC, BTNU, BTNL, BTNR, BTND,
+    input BTNC, BTNU, BTNL, BTNR, BTND, CPU_RESETN,
     output AUD_PWM,AUD_SD,
     output SD_RESET,
     output SD_SCK,
@@ -81,7 +81,7 @@ module fpglappy(
 // Game Logic Specific wires, regs, and submodule calls
 //////////////////////////////////////////////////////////////////////////////////
 
-/*
+
     //debounce button and switch inputs
     // BTNC is start
     wire start; //Assert = start game, deassert = pause
@@ -127,13 +127,13 @@ module fpglappy(
                  .prev_player_locx(prev_player_locx), .prev_player_locy(prev_player_locy));
     
     gamestate gs(.clock(clock_25mhz), .start(start), .jump(jump), .collision(collision), 
-                 .expired(expired), .one_hz(one_hz),
+                 .expired(expired), .one_hz(one_hz), .start_timer(start_timer),
                  .hs_enable(hs_enable), .score(score),
                  .sound_collide(sound_collide), .sound_jump(sound_jump), .sound_background(sound_background));
     //add obs_gen
     assign data = {sound_collide, sound_jump, score, 24'h012345, countdown};
     
-    */
+ 
 //////////////////////////////////////////////////////////////////////////////////
 
 //Vision tracking player location 
@@ -162,10 +162,10 @@ wire [9:0] player_x, player_y;
     vga vga1(.vga_clock(clock_25mhz),.hcount(hcount),.vcount(vcount),
           .hsync(hsync),.vsync(vsync),.at_display_area(at_display_area));
 
-    spriteline spriteline1(.vsync(vsync),.birdY(200),
-        .obs1x(175),.obs1y(200),.obs1en(1),
-        .obs2x(350),.obs2y(400),.obs2en(1),
-        .obs3x(600),.obs3y(300),.obs3en(1),
+    spriteline spriteline1(.vsync(vsync),.birdX(bird_x),.birdY(bird_y),
+        .obs1x(obs1x),.obs1y(obs1y),.obs1en(obs1en),
+        .obs2x(obs2x),.obs2y(obs2y),.obs2en(obs2en),
+        .obs3x(obs3x),.obs3y(obs3y),.obs3en(obs3en),
         .hcount(hcount), .vcount(vcount),
         .at_display_area(at_display_area),.VGA_RGB({VGA_R,VGA_G,VGA_B}));
 
@@ -174,7 +174,7 @@ wire [9:0] player_x, player_y;
     
     // Audio
     assign AUD_SD=1;
-    audio audio(.clk(clock_25mhz),.jumpSound(BTNR),.crashSound(BTNC),.music(0),.PWM_out(AUD_PWM));
+    audio audio(.clk(clock_25mhz),.jumpSound(sound_jump),.crashSound(sound_collide),.music(0),.PWM_out(AUD_PWM));
 
 endmodule
 
