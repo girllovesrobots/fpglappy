@@ -31,11 +31,11 @@ module obstacle_gen(input clock, obs1en, obs2en, obs3en,
                     output reg[9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y);
         always @(posedge clock) begin
             obs1x <= 200;
-            obs2x <= 700;
-            obs3x <= 1000;
-            obs1y <= 50;
+            obs2x <= 400;
+            obs3x <= 600;
+            obs1y <= 200;
             obs2y <= 400;
-            obs3y <=600;
+            obs3y <= 350;
             //must figure out some way to randomly generate??
         end
 endmodule
@@ -113,7 +113,7 @@ module physics(input clock,
                );
         always @(posedge clock) begin
             if (prev_enable ==0) begin
-                bird_y <= 500;
+                bird_y <= 250;
             //don't compare the two locations
             end
             //otherwise compare the two y-coord locations
@@ -121,7 +121,7 @@ module physics(input clock,
                 jump <= (player_y > prev_player_locy+60)? 1:0;
                 bird_y <= (jump)? bird_y-10: bird_y+5;
             end
-            bird_x <= 100; //x does not change     
+            bird_x <= 200; //x does not change     
             //if the location has changed some amount, it's a jump so decrease y-coord for bird location
             //else keep falling...increase y-coord for bird
             prev_player_locx <= player_x;

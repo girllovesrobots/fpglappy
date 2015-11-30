@@ -93,11 +93,11 @@ module fpglappy(
        debounce db72(.reset(0),.clock(clock_25mhz),.noisy(SW[1]),.clean(gamelvl[1]));
        debounce db73(.reset(0),.clock(clock_25mhz),.noisy(SW[0]),.clean(gamelvl[0]));
     wire obs1en;
-       debounce dbo1(.reset(0),.clock(clock_25mhz),.noisy(SW[4]),.clean(gamelvl[3]));
+       debounce dbo1(.reset(0),.clock(clock_25mhz),.noisy(SW[4]),.clean(obs1en));
     wire obs2en;
-       debounce dbo2(.reset(0),.clock(clock_25mhz),.noisy(SW[5]),.clean(gamelvl[3]));
+       debounce dbo2(.reset(0),.clock(clock_25mhz),.noisy(SW[5]),.clean(obs2en));
     wire obs3en;
-       debounce dbo(.reset(0),.clock(clock_25mhz),.noisy(SW[6]),.clean(gamelvl[3]));
+       debounce dbo(.reset(0),.clock(clock_25mhz),.noisy(SW[6]),.clean(obs3en));
            
     wire [9:0] bird_x, bird_y; //Bird has format x-coord, y-coord
     wire [9:0] prev_player_locx, prev_players_locy; //Keeps track of previous player location
@@ -163,9 +163,9 @@ wire [9:0] player_x, player_y;
           .hsync(hsync),.vsync(vsync),.at_display_area(at_display_area));
 
     spriteline spriteline1(.vsync(vsync),.birdX(bird_x),.birdY(bird_y),
-        .obs1x(obs1x),.obs1y(obs1y),.obs1en(obs1en),
-        .obs2x(obs2x),.obs2y(obs2y),.obs2en(obs2en),
-        .obs3x(obs3x),.obs3y(obs3y),.obs3en(obs3en),
+        .obs1x(obs1x),.obs1y(obs1y),.obs1en(1),
+        .obs2x(obs2x),.obs2y(obs2y),.obs2en(1),
+        .obs3x(obs3x),.obs3y(obs3y),.obs3en(1),
         .hcount(hcount), .vcount(vcount),
         .at_display_area(at_display_area),.VGA_RGB({VGA_R,VGA_G,VGA_B}));
 
