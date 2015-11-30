@@ -80,6 +80,8 @@ module fpglappy(
 //////////////////////////////////////////////////////////////////////////////////
 // Game Logic Specific wires, regs, and submodule calls
 //////////////////////////////////////////////////////////////////////////////////
+
+/*
     //debounce button and switch inputs
     // BTNC is start
     wire start; //Assert = start game, deassert = pause
@@ -95,7 +97,7 @@ module fpglappy(
     wire obs2en;
        debounce dbo2(.reset(0),.clock(clock_25mhz),.noisy(SW[5]),.clean(gamelvl[3]));
     wire obs3en;
-       debounce dbo1(.reset(0),.clock(clock_25mhz),.noisy(SW[6]),.clean(gamelvl[3]));
+       debounce dbo(.reset(0),.clock(clock_25mhz),.noisy(SW[6]),.clean(gamelvl[3]));
            
     wire [9:0] bird_x, bird_y; //Bird has format x-coord, y-coord
     wire [9:0] prev_player_locx, prev_players_locy; //Keeps track of previous player location
@@ -126,10 +128,12 @@ module fpglappy(
     
     gamestate gs(.clock(clock_25mhz), .start(start), .jump(jump), .collision(collision), 
                  .expired(expired), .one_hz(one_hz),
-                 .hs_enable(hs_enable), .score(score)
+                 .hs_enable(hs_enable), .score(score),
                  .sound_collide(sound_collide), .sound_jump(sound_jump), .sound_background(sound_background));
     //add obs_gen
     assign data = {sound_collide, sound_jump, score, 24'h012345, countdown};
+    
+    */
 //////////////////////////////////////////////////////////////////////////////////
 
 //Vision tracking player location 
