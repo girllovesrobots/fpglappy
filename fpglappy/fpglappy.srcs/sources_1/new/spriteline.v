@@ -21,13 +21,13 @@
 
 
 module spriteline(
+    input vsync,
     input [9:0] birdY,
     input [9:0] obs1x,obs2x,obs3x,
     input [9:0] obs1y,obs2y,obs3y,
     input obs1en,obs2en,obs3en,
     input [9:0] hcount,
     input [9:0] vcount,
-    input [8:0] backgroundPos,
     input at_display_area,
     input sd_en,
     input sd_byte_available,
@@ -43,6 +43,7 @@ module spriteline(
     // Background
     //wire [11:0] background = {{4{hcount[2]}},{4{hcount[1]}},{4{hcount[0]}}}; //uncomment for stripe background
     wire[11:0] background = {backgroundMemVal[7:5],1'b0,backgroundMemVal[4:2],1'b0,backgroundMemVal[1:0],2'b00};
+    reg[9:0] backgroundPos = 0;
     
     // Bird Sprite
     wire [11:0] birdOut;
@@ -98,6 +99,13 @@ module spriteline(
     
     background_sprite background_sprite(.a(backgroundMemAddress),.spo(backgroundMemVal));
     
+    reg[3:0] vsyncDivide = 0;
+    always @ (posedge vsync) begin
+        vsyncDivide <= vsyncDivide+1;
+        if (vsyncDivide == 0) begin
+            backgroundPos <= backgroundPos + 1;
+        end
+    end
     
 endmodule
 

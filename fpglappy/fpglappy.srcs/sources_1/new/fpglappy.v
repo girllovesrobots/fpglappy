@@ -48,6 +48,7 @@ module fpglappy(
     input SD_CD,
     input[15:0] SW,
     input BTNC, BTNU, BTNL, BTNR, BTND,
+    output AUD_PWM,AUD_SD,
     output SD_RESET,
     output SD_SCK,
     output SD_CMD,
@@ -75,41 +76,11 @@ module fpglappy(
     assign SEG[6:0] = segments;
     assign SEG[7] = 1'b1;
 
-//////////////////////////////////////////////////////////////////////////////////
-// Game Logic Specific wires, regs, and submodule calls
-//////////////////////////////////////////////////////////////////////////////////
-    //debounce button and switch inputs
-    // BTNC is start
-    wire start; //Assert = start game, deassert = pause
-       debounce db1(.reset(0),.clock(clock_25mhz),.noisy(BTNC),.clean(start));
-    //Game Level
-    wire [3:0] gamelvl;
-       debounce db7(.reset(0),.clock(clock_25mhz),.noisy(SW[3]),.clean(gamelvl[3]));
-       debounce db71(.reset(0),.clock(clock_25mhz),.noisy(SW[2]),.clean(gamelvl[2]));
-       debounce db72(.reset(0),.clock(clock_25mhz),.noisy(SW[1]),.clean(gamelvl[1]));
-       debounce db73(.reset(0),.clock(clock_25mhz),.noisy(SW[0]),.clean(gamelvl[0]));
 
-    wire [9:0] bird_location [1:0]; //Bird has format x-coord, y-coord
-    wire [9:0] prev_player_loc [2:0]; //Keeps track of previous player location
-    wire [9:0] obsx[2:0], obsy[2:0], obsz[2:0]; //Obstacles have format x-coord, y-coord, enable
-    
-    reg prev_enable;
-    initial prev_enable = 0;
-    
-    wire collision, jump;
-    wire hs_enable, sound_backgroun, sound_collide, sound_jump;
-    wire showbit;
-    wire one_hz, start_timer, expired;
-    wire [2:0] countdown;
-    
-    //Submodules
-    onehzstart onehzs(.clock(clock_25mhz), .one_hz_enable(one_hz));
-    timer(.clock(clock_25mhz), .start_timer, .one_hz(one_hz), .expired(expired), .countdown(countdown));
-//////////////////////////////////////////////////////////////////////////////////
+    // Instantiate Vision Module
 
-//Vision tracking player location 
-wire [9:0] player_location [2:0];
- 
+    wire [9:0] player_location [2:0];
+
   //  vision tracking(.clk(clock_25mh),.x_pos(player_location[0]), .y_pos(player_location[1]),
   //  .z_pos(player_location[2]));
   
@@ -132,49 +103,19 @@ wire [9:0] player_location [2:0];
     wire hsync, vsync, at_display_area;
     vga vga1(.vga_clock(clock_25mhz),.hcount(hcount),.vcount(vcount),
           .hsync(hsync),.vsync(vsync),.at_display_area(at_display_area));
-          
-    wire[8:0] backgroundPos = 0; // Replace to make scrolling
 
-    spriteline spriteline1(.birdY(200),
+    spriteline spriteline1(.vsync(vsync),.birdY(200),
         .obs1x(175),.obs1y(200),.obs1en(1),
         .obs2x(350),.obs2y(400),.obs2en(1),
         .obs3x(600),.obs3y(300),.obs3en(1),
-        .hcount(hcount), .vcount(vcount), .backgroundPos(backgroundPos),
+        .hcount(hcount), .vcount(vcount),
         .at_display_area(at_display_area),.VGA_RGB({VGA_R,VGA_G,VGA_B}));
 
     assign VGA_HS = ~hsync;
     assign VGA_VS = ~vsync;
-//////////////////////////////////////////////////////////////////////////////////
-//gamelogic submodule reference
-//////////////////////////////////////////////////////////////////////////////////
+    
+    // Audio
+    assign AUD_SD=1;
+    audio audio(.clk(clock_25mhz),.jumpSound(BTNR),.crashSound(BTNC),.music(0),.PWM_out(AUD_PWM));
 
-
-endmodule
-
-//////////////////////////////////////////////////////////////////////////////////
-// debounce module: debounces switch and button inputs
-//////////////////////////////////////////////////////////////////////////////////
-module debounce #(parameter DELAY=270000)   // .01 sec with a 27Mhz clock
-	        (input reset, clock, noisy,
-	         output reg clean);
-
-   reg [18:0] count;
-   reg new;
-
-   always @(posedge clock)
-     if (reset)
-       begin
-	  count <= 0;
-	  new <= noisy;
-	  clean <= noisy;
-       end
-     else if (noisy != new)
-       begin
-	  new <= noisy;
-	  count <= 0;
-       end
-     else if (count == DELAY)
-       clean <= new;
-     else
-       count <= count+1; 
 endmodule
