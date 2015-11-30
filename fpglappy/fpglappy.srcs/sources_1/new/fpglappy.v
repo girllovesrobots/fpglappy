@@ -20,7 +20,6 @@
 //                      ███    ███ ███    ███    ███ ███   ▄███
 //                    ▄█████████▀  █▀     ███    ███ ████████▀
 //                                        ███    ███
-// Create Date: 11/13/2015 12:51:29 PM
 // Design Name: Fpglappy Bird
 // Module Name: fpglappy
 // Project Name: Fpglappy Bird
@@ -76,11 +75,66 @@ module fpglappy(
     assign SEG[6:0] = segments;
     assign SEG[7] = 1'b1;
 
-
     // Instantiate Vision Module
 
-    wire [9:0] player_location [2:0];
+//////////////////////////////////////////////////////////////////////////////////
+// Game Logic Specific wires, regs, and submodule calls
+//////////////////////////////////////////////////////////////////////////////////
+    //debounce button and switch inputs
+    // BTNC is start
+    wire start; //Assert = start game, deassert = pause
+       debounce db1(.reset(0),.clock(clock_25mhz),.noisy(BTNC),.clean(start));
+    //Game Level
+    wire [3:0] gamelvl;
+       debounce db7(.reset(0),.clock(clock_25mhz),.noisy(SW[3]),.clean(gamelvl[3]));
+       debounce db71(.reset(0),.clock(clock_25mhz),.noisy(SW[2]),.clean(gamelvl[2]));
+       debounce db72(.reset(0),.clock(clock_25mhz),.noisy(SW[1]),.clean(gamelvl[1]));
+       debounce db73(.reset(0),.clock(clock_25mhz),.noisy(SW[0]),.clean(gamelvl[0]));
+    wire obs1en;
+       debounce dbo1(.reset(0),.clock(clock_25mhz),.noisy(SW[4]),.clean(gamelvl[3]));
+    wire obs2en;
+       debounce dbo2(.reset(0),.clock(clock_25mhz),.noisy(SW[5]),.clean(gamelvl[3]));
+    wire obs3en;
+       debounce dbo1(.reset(0),.clock(clock_25mhz),.noisy(SW[6]),.clean(gamelvl[3]));
+           
+    wire [9:0] bird_x, bird_y; //Bird has format x-coord, y-coord
+    wire [9:0] prev_player_locx, prev_players_locy; //Keeps track of previous player location
+    wire [9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y; //x and y coords for the obstacles
+    
+    reg prev_enable;
+    initial prev_enable = 0;
+    
+    wire collision, jump;
+    wire hs_enable, sound_background, sound_collide, sound_jump;
+    wire showbit;
+    wire one_hz, start_timer, expired;
+    wire [2:0] countdown;
+    wire [4:0] score;
+    //Submodules --tested
+    onehzstart onehzs(.clock(clock_25mhz), .one_hz_enable(one_hz));
+    timer timer1(.clock(clock_25mhz), .start_timer(start_timer), .one_hz(one_hz), 
+                 .expired(expired), .countdown(countdown));
+    collision_detection cd(.clock(clock_25mhz), .obs1en(obs1en), .obs2en(obs2en), .obs3en(obs3en),
+                           .bird_x(bird_x), .bird_y(bird_y),
+                           .obs1x(obs1x), .obs1y(obs1y), .obs2x(obs2x), .obs2y(obs2y), .obs3x(obs3x), .obs3y(obs3y),
+                           .collision(collision));
+                           
+    //submodules --not tested                     
+    physics phys(.clock(clock_25mhz), .prev_enable(prev_enable), .player_x(player_x), .player_y(player_y),
+                 .jump(jump), .bird_x(bird_x), .bird_y(bird_y), 
+                 .prev_player_locx(prev_player_locx), .prev_player_locy(prev_player_locy));
+    
+    gamestate gs(.clock(clock_25mhz), .start(start), .jump(jump), .collision(collision), 
+                 .expired(expired), .one_hz(one_hz),
+                 .hs_enable(hs_enable), .score(score)
+                 .sound_collide(sound_collide), .sound_jump(sound_jump), .sound_background(sound_background));
+    //add obs_gen
+    assign data = {sound_collide, sound_jump, score, 24'h012345, countdown};
+//////////////////////////////////////////////////////////////////////////////////
 
+//Vision tracking player location 
+wire [9:0] player_x, player_y;
+ 
   //  vision tracking(.clk(clock_25mh),.x_pos(player_location[0]), .y_pos(player_location[1]),
   //  .z_pos(player_location[2]));
   

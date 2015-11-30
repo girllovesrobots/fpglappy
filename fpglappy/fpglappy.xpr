@@ -46,6 +46,20 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PSRCDIR/sources_1/new/display_8hex.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PSRCDIR/sources_1/new/clock_quarter_divider.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PSRCDIR/sources_1/new/audio.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -61,20 +75,6 @@
         </FileInfo>
       </File>
       <File Path="$PSRCDIR/sources_1/new/sdMaster.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PSRCDIR/sources_1/new/display_8hex.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PSRCDIR/sources_1/new/clock_quarter_divider.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -169,22 +169,6 @@
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="dist_mem_gen_v8_0_9/hdl/dist_mem_gen_v8_0_vhsyn_rfs.vhd"/>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="pipe_sprite_ooc.xdc"/>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="dist_mem_gen_v8_0_9/simulation/dist_mem_gen_v8_0.vhd"/>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="synth/pipe_sprite.vhd"/>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="dist_mem_gen_v8_0_9/hdl/dist_mem_gen_v8_0.vhd"/>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="doc/dist_mem_gen_v8_0_changelog.txt"/>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="sim/pipe_sprite.vhd"/>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="pipe_sprite_sim_netlist.vhdl"/>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="pipe_sprite_sim_netlist.v"/>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="pipe_sprite_stub.vhdl"/>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="pipe_sprite_stub.v"/>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="pipe_sprite.veo"/>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="pipe_sprite.vho"/>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="pipe_sprite.xml"/>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="pipe_sprite.mif"/>
-        <CompFileExtendedInfo CompFileName="pipe_sprite.xci" FileRelPathName="PipeSprite.coe"/>
       </File>
       <Config>
         <Option Name="TopModule" Val="pipe_sprite"/>
@@ -265,36 +249,28 @@
     </Run>
     <Run Id="pipe_sprite_synth_1" Type="Ft3:Synth" SrcSet="pipe_sprite" Part="xc7a100tcsg324-3" ConstrsSet="pipe_sprite" Description="Vivado Synthesis Defaults" Dir="$PRUNDIR/pipe_sprite_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2015">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2015"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
     </Run>
     <Run Id="background_sprite_synth_1" Type="Ft3:Synth" SrcSet="background_sprite" Part="xc7a100tcsg324-3" ConstrsSet="background_sprite" Description="Vivado Synthesis Defaults" Dir="$PRUNDIR/background_sprite_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2015">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2015"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
     </Run>
     <Run Id="crash_sound_synth_1" Type="Ft3:Synth" SrcSet="crash_sound" Part="xc7a100tcsg324-3" ConstrsSet="crash_sound" Description="Vivado Synthesis Defaults" Dir="$PRUNDIR/crash_sound_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2015">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2015"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
     </Run>
     <Run Id="jump_sound_synth_1" Type="Ft3:Synth" SrcSet="jump_sound" Part="xc7a100tcsg324-3" ConstrsSet="jump_sound" Description="Vivado Synthesis Defaults" Dir="$PRUNDIR/jump_sound_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2015">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2015"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -316,9 +292,7 @@
     </Run>
     <Run Id="pipe_sprite_impl_1" Type="Ft2:EntireDesign" Part="xc7a100tcsg324-3" ConstrsSet="pipe_sprite" Description="Vivado Implementation Defaults" SynthRun="pipe_sprite_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2015">
-          <Desc>Vivado Implementation Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2015"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -332,9 +306,7 @@
     </Run>
     <Run Id="background_sprite_impl_1" Type="Ft2:EntireDesign" Part="xc7a100tcsg324-3" ConstrsSet="background_sprite" Description="Vivado Implementation Defaults" SynthRun="background_sprite_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2015">
-          <Desc>Vivado Implementation Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2015"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -348,9 +320,7 @@
     </Run>
     <Run Id="crash_sound_impl_1" Type="Ft2:EntireDesign" Part="xc7a100tcsg324-3" ConstrsSet="crash_sound" Description="Vivado Implementation Defaults" SynthRun="crash_sound_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2015">
-          <Desc>Vivado Implementation Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2015"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -364,9 +334,7 @@
     </Run>
     <Run Id="jump_sound_impl_1" Type="Ft2:EntireDesign" Part="xc7a100tcsg324-3" ConstrsSet="jump_sound" Description="Vivado Implementation Defaults" SynthRun="jump_sound_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2015">
-          <Desc>Vivado Implementation Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2015"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
