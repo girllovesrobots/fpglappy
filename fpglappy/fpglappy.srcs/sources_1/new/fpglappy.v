@@ -109,7 +109,6 @@ module fpglappy(
     wire [9:0] player_location [2:0];
     reg [19:0] next_pixel;
     wire done_cam_config;
-    wire start_config;
 
     assign XCLK_C = clock_25mhz;
     assign RESET_C = 0;
@@ -130,8 +129,8 @@ module fpglappy(
         .dina(dina),
         .wea(wea),
         .done_cam_config(done_cam_config),
-        .start_config(start_config),
-        .button_input(BTNC)
+        .button_input(BTNC),
+        .sel(BTNU)
     );
 
     // BRAM Test
@@ -159,11 +158,9 @@ module fpglappy(
     assign web = 0;
     assign dinb = 0;
     always@(*) begin
-        //LED[0] <= done_cam_config;
-        //LED[1] <= start_config;
         LED <= doutb;
     end
-    assign data = addrb;
+    assign data = {6'b0, player_location[0], 6'b0, player_location[1]};
     /* TESTBITJIWJAOIDJWOIAJDoiw */
 
     //////////////////////////////////////////////////////////////////////////////////
@@ -182,9 +179,11 @@ module fpglappy(
         end
     end
 
-    assign VGA_R = at_display_area ? {doutb[7:6], 2'b0} : 0;
-    assign VGA_G = at_display_area ? doutb[5:2] : 0;
-    assign VGA_B = at_display_area ? {doutb[1:0], 2'b0} : 0;
+    assign VGA_R = (hcount == player_location[0] && vcount == player_location[1]) ? 4'b1111 : (at_display_area ? {doutb[7:6], 2'b0} : 0);
+    assign VGA_G = (hcount == player_location[0] && vcount == player_location[1]) ? 0 : (at_display_area ? {doutb[5:2], 2'b0} : 0);
+    assign VGA_B = (hcount == player_location[0] && vcount == player_location[1]) ? 0 : (at_display_area ? {doutb[1:0], 2'b0} : 0);
+    //assign VGA_G = at_display_area ? doutb[5:2] : 0;
+    //assign VGA_B = at_display_area ? {doutb[1:0], 2'b0} : 0;
     assign VGA_HS = ~hsync;
     assign VGA_VS = ~vsync;
 

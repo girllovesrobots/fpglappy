@@ -62,8 +62,42 @@ module OV7670_config_rom(
     31: dout <= 16'hB1_0c; //ABLC1
     32: dout <= 16'hB2_0e; //RSVD       more magic internet values
     33: dout <= 16'hB3_80; //THL_ST
+
+    //34: dout <= 16'h56_20; //CONTRAS
+
+    //34: dout <= 16'h7A_20; //GAMMA CURVE
+    //35: dout <= 16'h7B_10; //GAMMA CURVE
+    //36: dout <= 16'h7C_1E; //GAMMA CURVE
+    //37: dout <= 16'h7D_35; //GAMMA CURVE
+    //38: dout <= 16'h7E_5a; //GAMMA CURVE
+    //39: dout <= 16'h7F_69; //GAMMA CURVE
+    //40: dout <= 16'h80_76; //GAMMA CURVE
+    //41: dout <= 16'h81_80; //GAMMA CURVE
+    //42: dout <= 16'h82_88; //GAMMA CURVE
+    //43: dout <= 16'h83_8f; //GAMMA CURVE
+    //44: dout <= 16'h84_96; //GAMMA CURVE
+    //45: dout <= 16'h85_a3; //GAMMA CURVE
+    //46: dout <= 16'h86_af; //GAMMA CURVE
+    //47: dout <= 16'h87_c4; //GAMMA CURVE
+    //48: dout <= 16'h88_d7; //GAMMA CURVE
+    //49: dout <= 16'h89_e8; //GAMMA CURVE
+    34: dout <= 16'h01_40; // ------ Play with this
+    35: dout <= 16'h02_40; // ------ Play with this
+    36: dout <= 16'h09_00;
+    37: dout <= 16'h0d_00;
+    38: dout <= 16'h10_00;
+    39: dout <= 16'h13_e5;
+    40: dout <= 16'ha4_89;
+    41: dout <= 16'h26_A5;
+    42: dout <= 16'h3b_02;
+    43: dout <= 16'h3d_c2;
+    44: dout <= 16'h41_08;
+    45: dout <= 16'h56_40;
+    46: dout <= 16'h58_9e;
+
     default: dout <= 16'hFF_FF;         //mark end of ROM
     endcase
     
+
     end
 endmodule

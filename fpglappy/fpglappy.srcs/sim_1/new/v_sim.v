@@ -36,7 +36,14 @@ module v_sim();
     wire [7:0] dina;
     wire wea;
     wire done_cam_config;
-    wire start_config;
+
+    wire [4:0] r;
+    wire [5:0] g;
+    wire [4:0] b;
+
+
+    wire [6:0] y, u, v;
+    wire [5:0] yP;
 
 
     vision tracking(
@@ -55,19 +62,39 @@ module v_sim();
         .addra(addra),
         .dina(dina),
         .wea(wea),
-        .done_cam_config(done_cam_config),
-        .start_config(start_config)
+        .done_cam_config(done_cam_config)
     );
 
+    rgbToYUV rgbpls(.b(currentPixel[4:0]), .g(currentPixel[10:5]), .r(currentPixel[15:11]),
+        .y(y), .u(u), .v(v));
+
+    yPrime ypp(.b(currentPixel[4:0]), .g(currentPixel[10:5]), .r(currentPixel[15:11]),
+        .yP(yP));
+
+
+    reg [15:0] currentPixel;
+    wire [7:0] newPixel;
+
+    preprocessing rofl(.currentPixel(currentPixel), .newPixel(newPixel));
+
     always #5 clk = ~clk;
+    always #5 PCLK_C = ~PCLK_C;
+
+    assign r = currentPixel[15:11];
+    assign g = currentPixel[10:5];
+    assign b = currentPixel[4:0];
 
     initial begin
+        $display (" 10 %s  3  = %d","%", 10 % 3);
+        $display (" pls why u fuckuu work = %d", 0 + (0 % 3));
+        currentPixel = 16'h9800;
         clk = 0;
         VSYNC_C = 0;
         HREF_C = 0;
         PCLK_C = 0;
         JA = 0;
-        #100;
-    end
+        #10;
+
+   end
 
 endmodule
