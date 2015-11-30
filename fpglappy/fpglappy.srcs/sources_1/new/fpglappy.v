@@ -1,4 +1,4 @@
-﻿`timescale 1ns / 1ps
+`timescale 1ns / 1ps
 /////////////////////////////////////////////////////////////////////////////////////////////
 //
 //
@@ -128,13 +128,16 @@ module fpglappy(
                  .expired(expired), .one_hz(one_hz), .start_timer(start_timer),
                  .hs_enable(hs_enable), .score(score),
                  .sound_collide(sound_collide), .sound_jump(sound_jump), .sound_background(sound_background));
-    //add obs_gen
+    
+    obstacle_gen og(.clock(clock_25mhz), .obs1en(obs1en), .obs2en(obs2en), .obs3en(obs3en),
+                 .obs1x(obs1x), .obs1y(obs1y), .obs2x(obs2x), .obs2y(obs2y), .obs3x(obs3x), .obs3y(obs3y));
+    
     assign LED[15] = sound_collide;
     assign LED[14] = collision;
     assign LED[13] = sound_jump;
     assign LED[12] = jump;
     assign LED[11] = up;
-    assign data = {score, 24'h01234, countdown};
+    assign data = {score, 24'h012345, countdown};
 //////////////////////////////////////////////////////////////////////////////////
 
 //Vision tracking player location 

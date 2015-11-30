@@ -29,13 +29,13 @@ endmodule
 module obstacle_gen(input clock, obs1en, obs2en, obs3en,
                    // output reg obs1en, obs2en, obs3en,
                     output reg[9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y);
-        always @(posedge clock) begin
-            obs1x <= 200;
-            obs2x <= 700;
-            obs3x <= 1000;
-            obs1y <= 50;
+        always @(posedge clock) begin  //144,784 (x) 35,515 (y)
+            obs1x <= 400;
+            obs2x <= 570;
+            obs3x <= 630;
+            obs1y <= 200;
             obs2y <= 400;
-            obs3y <=600;
+            obs3y <=50;
             //must figure out some way to randomly generate??
         end
 endmodule
@@ -62,7 +62,7 @@ endmodule
 //////////////////////////////////////////////////////////////////////////////////
 module gamestate(input clock, start, jump, collision, expired, one_hz,
                  output reg hs_enable, sound_collide, sound_jump, sound_background, start_timer,
-                 output reg [4:0] score
+                 output reg [3:0] score
                  );
     
         parameter START = 3'b000, PLAY = 3'b001, PAUSE = 3'b010, LOSE = 3'b011, HIGHSCORE= 3'b100;
@@ -80,13 +80,17 @@ module gamestate(input clock, start, jump, collision, expired, one_hz,
                 START: begin
                     if (start) begin
                         state <= PLAY;
+                        score <= 0;
                         start_timer <= 0;
                     end
                 end
                 PLAY: begin
                     if (collision) state <= LOSE;
                     else if (start) state <= PAUSE;
-                    else if (one_hz) score <= score + 1;
+                    else if (one_hz) begin
+                        if (score<15) score <= score + 1;
+                        else score <= score;
+                    end
                 end
                 PAUSE: begin
                     if (start) state <= START;
@@ -106,6 +110,7 @@ endmodule
 // Physics module: sets rate of bird movement (jumping/falling)
 //////////////////////////////////////////////////////////////////////////////////
 module physics(input clock, 
+               input up, //used for testing jumps
                input [9:0] player_x, player_y,
                output reg jump,
                output reg [9:0] bird_x, bird_y, prev_player_locx, prev_player_locy
@@ -114,21 +119,26 @@ module physics(input clock,
 	initial prev_enable =0;
         always @(posedge clock) begin
             if (prev_enable ==0) begin
-                bird_y <= 500;
-		prev_enable =1;
+                bird_y <= 250;
+		        prev_enable =1;
             //don't compare the two locations
             end
             //otherwise compare the two y-coord locations
             else begin
-                jump <= (player_y > prev_player_locy+60)? 1:0;
-                bird_y <= (jump)? bird_y-10: bird_y+5;
+                if (up) jump <=1;
+                else jump <=0;
+                bird_y <= (up)? bird_y-10: bird_y+5;
+                //below is with vision tracking ------
+                //jump <= (player_y > prev_player_locy+60)? 1:0;
+                //bird_y <= (jump)? bird_y-10: bird_y+5;
             end
-            bird_x <= 100; //x does not change     
+            bird_x <= 200; //x does not change     
             //if the location has changed some amount, it's a jump so decrease y-coord for bird location
             //else keep falling...increase y-coord for bird
             prev_player_locx <= player_x;
             prev_player_locy <= player_y;
         end
+        
 endmodule
 
 
