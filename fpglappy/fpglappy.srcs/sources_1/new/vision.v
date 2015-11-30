@@ -12,6 +12,10 @@
 // Authors: Julian Mendoza
 //
 //
+// TODO:
+//  - Allow player to use more colors for hats
+//  - Clean up code a bit
+//  - Integrate the Bram Module into here
 //
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -78,6 +82,10 @@ module vision(
     wire [7:0] dina_p;
     preprocessing pp(.currentPixel(pixel_data), .newPixel(dina_p));
 
+    // Grayscale Conversion
+    wire [7:0] gray;
+    grayscale gs(.b(pixel_data[4:0]), .g(pixel_data[10:5]), .r(pixel_data[15:11]), .gray(gray));
+
     // Center of Mass Variables
     reg [19:0] numPixels = 0;
     reg [26:0] massX = 0;
@@ -90,8 +98,7 @@ module vision(
         if(pixel_valid)
         begin
             start <= 0;
-            // TODO: Change stored data to 12-bit image
-            dina <= (sel) ? {pixel_data[15:14], pixel_data[10:7], pixel_data[4:3]} : dina_p;
+            dina <= (!sel) ? gray : dina_p;
             addra <= cur_pixel;
             wea <= 1;
             cap <= (frame_done) ? 0 : cap;
@@ -140,11 +147,10 @@ module preprocessing(
     output reg [7:0] newPixel
 );
 
-    // TODO: Switch to Parameters
-    reg [6:0] uMin = 70;
-    reg [6:0] uMax = 85;
-    reg [6:0] vMin = 80;
-    reg [6:0] vMax = 97;
+    parameter uMin = 70;
+    parameter uMax = 85;
+    parameter vMin = 80;
+    parameter vMax = 97;
 
     // RGB to YUV Conversion
     wire [6:0] y, u, v;
@@ -218,4 +224,24 @@ module yPrime(
         else
             yP <= b_6;
     end
+endmodule
+
+module grayscale(
+    input wire [4:0] r,
+    input wire [5:0] g,
+    input wire [4:0] b,
+    output wire [7:0] gray
+);
+
+    wire [7:0] r_8;
+    wire [7:0] g_8;
+    wire [7:0] b_8;
+
+    // Make variables same size
+    assign r_8 = r << 3;
+    assign g_8 = g << 2;
+    assign b_8 = b << 3;
+
+    assign gray = (r_8 >> 2) + (g_8 >> 1) + (b_8 >> 2);
+
 endmodule

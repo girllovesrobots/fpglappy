@@ -51,6 +51,7 @@ module fpglappy(
     output[3:0] VGA_B,
     output[3:0] VGA_G,
 
+    // VISION STUFF --------------------------------------------
     input[7:0] JA,
     input PCLK_C,
     input VSYNC_C,
@@ -60,6 +61,7 @@ module fpglappy(
     output PWDN_C,
     output RESET_C,
     output SIOC_C,
+    // VISION STUFF --------------------------------------------
 
     output VGA_HS,
     output VGA_VS,
@@ -80,12 +82,12 @@ module fpglappy(
     assign SEG[6:0] = segments;
     assign SEG[7] = 1'b1;
 
+    // VISION STUFF --------------------------------------------
     // Wires needed for BRAM
     wire [18:0] addra;
     wire [7:0] dina;
     wire [7:0] douta;
     wire wea;
-
     reg [18:0] addrb;
     wire [7:0] dinb;
     wire [7:0] doutb;
@@ -99,10 +101,11 @@ module fpglappy(
     assign LED17_G = 0;
     assign LED17_R = 0;
 
-
-    // 1 Second Clock
-    wire clock_1hz;
-    divider divide(.clock25mhz(clock_25mhz), .clock1hz(clock_1hz));
+    // Initialize Things
+    initial begin
+        addrb <= 0;
+        LED <= 0;
+    end
 
     // Instantiate Vision Module
 
@@ -148,11 +151,7 @@ module fpglappy(
         .web(web)
     );
 
-    // Initialize Things
-    initial begin
-        addrb <= 0;
-        LED <= 0;
-    end
+    // VISION STUFF --------------------------------------------
 
     /* TESTBITJIWJAOIDJWOIAJDoiw */
     assign web = 0;
@@ -161,6 +160,7 @@ module fpglappy(
         LED <= doutb;
     end
     assign data = {6'b0, player_location[0], 6'b0, player_location[1]};
+    reg tracking_range = 0;
     /* TESTBITJIWJAOIDJWOIAJDoiw */
 
     //////////////////////////////////////////////////////////////////////////////////
@@ -177,11 +177,18 @@ module fpglappy(
             addrb <= next_pixel;
             next_pixel <= hcount + 640*vcount;
         end
+        if (hcount - player_location[0] < 4 || player_location[0] - hcount < 4)
+            if (vcount - player_location[1] < 4 || player_location[1] - vcount < 4) tracking_range <= 1;
+            else tracking_range <= 0;
+        else tracking_range <= 0;
     end
 
-    assign VGA_R = (hcount == player_location[0] && vcount == player_location[1]) ? 4'b1111 : (at_display_area ? {doutb[7:6], 2'b0} : 0);
-    assign VGA_G = (hcount == player_location[0] && vcount == player_location[1]) ? 0 : (at_display_area ? {doutb[5:2], 2'b0} : 0);
-    assign VGA_B = (hcount == player_location[0] && vcount == player_location[1]) ? 0 : (at_display_area ? {doutb[1:0], 2'b0} : 0);
+    assign VGA_R = (tracking_range) ? 4'b1111 : (at_display_area ? doutb[7:4] : 0);
+    assign VGA_G = (tracking_range) ? 0 : (at_display_area ? doutb[7:4] : 0);
+    assign VGA_B = (tracking_range) ? 0 : (at_display_area ? doutb[7:4] : 0);
+    //assign VGA_R = (tracking_range) ? 4'b1111 : (at_display_area ? {doutb[7:6], 2'b0} : 0);
+    //assign VGA_G = (tracking_range) ? 0 : (at_display_area ? {doutb[5:2], 2'b0} : 0);
+    //assign VGA_B = (tracking_range) ? 0 : (at_display_area ? {doutb[1:0], 2'b0} : 0);
     //assign VGA_G = at_display_area ? doutb[5:2] : 0;
     //assign VGA_B = at_display_area ? {doutb[1:0], 2'b0} : 0;
     assign VGA_HS = ~hsync;
