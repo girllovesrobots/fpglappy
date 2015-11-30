@@ -126,7 +126,7 @@ module fpglappy(
     
     gamestate gs(.clock(clock_25mhz), .start(start), .jump(jump), .collision(collision), 
                  .expired(expired), .one_hz(one_hz),
-                 .hs_enable(hs_enable), .score(score)
+                 .hs_enable(hs_enable), .score(score),
                  .sound_collide(sound_collide), .sound_jump(sound_jump), .sound_background(sound_background));
     //add obs_gen
     assign data = {sound_collide, sound_jump, score, 24'h012345, countdown};
@@ -172,4 +172,32 @@ wire [9:0] player_x, player_y;
     assign AUD_SD=1;
     audio audio(.clk(clock_25mhz),.jumpSound(BTNR),.crashSound(BTNC),.music(0),.PWM_out(AUD_PWM));
 
+endmodule
+
+//////////////////////////////////////////////////////////////////////////////////
+// debounce module: debounces switch and button inputs
+//////////////////////////////////////////////////////////////////////////////////
+module debounce #(parameter DELAY=270000)   // .01 sec with a 27Mhz clock
+	        (input reset, clock, noisy,
+	         output reg clean);
+
+   reg [18:0] count;
+   reg new;
+
+   always @(posedge clock)
+     if (reset)
+       begin
+	  count <= 0;
+	  new <= noisy;
+	  clean <= noisy;
+       end
+     else if (noisy != new)
+       begin
+	  new <= noisy;
+	  count <= 0;
+       end
+     else if (count == DELAY)
+       clean <= new;
+     else
+       count <= count+1; 
 endmodule
