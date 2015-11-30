@@ -46,7 +46,7 @@ module fpglappy(
     input CLK100MHZ,
     input SD_CD,
     input[15:0] SW,
-    input BTNC, BTNU, BTNL, BTNR, BTND, CPU_RESETN,
+    input BTNC, BTNU, BTNL, BTNR, BTND,
     output AUD_PWM,AUD_SD,
     output SD_RESET,
     output SD_SCK,
@@ -80,12 +80,12 @@ module fpglappy(
 //////////////////////////////////////////////////////////////////////////////////
 // Game Logic Specific wires, regs, and submodule calls
 //////////////////////////////////////////////////////////////////////////////////
-
-
     //debounce button and switch inputs
     // BTNC is start
     wire start; //Assert = start game, deassert = pause
        debounce db1(.reset(0),.clock(clock_25mhz),.noisy(BTNC),.clean(start));
+    wire up; //Used for testing if a jump occurs
+       debounce db2(.reset(0),.clock(clock_25mhz),.noisy(BTNU),.clean(up));
     //Game Level
     wire [3:0] gamelvl;
        debounce db7(.reset(0),.clock(clock_25mhz),.noisy(SW[3]),.clean(gamelvl[3]));
@@ -93,11 +93,11 @@ module fpglappy(
        debounce db72(.reset(0),.clock(clock_25mhz),.noisy(SW[1]),.clean(gamelvl[1]));
        debounce db73(.reset(0),.clock(clock_25mhz),.noisy(SW[0]),.clean(gamelvl[0]));
     wire obs1en;
-       debounce dbo1(.reset(0),.clock(clock_25mhz),.noisy(SW[4]),.clean(gamelvl[3]));
+       debounce dbo1(.reset(0),.clock(clock_25mhz),.noisy(SW[4]),.clean(obs1en));
     wire obs2en;
-       debounce dbo2(.reset(0),.clock(clock_25mhz),.noisy(SW[5]),.clean(gamelvl[3]));
+       debounce dbo2(.reset(0),.clock(clock_25mhz),.noisy(SW[5]),.clean(obs2en));
     wire obs3en;
-       debounce dbo(.reset(0),.clock(clock_25mhz),.noisy(SW[6]),.clean(gamelvl[3]));
+       debounce dbo1(.reset(0),.clock(clock_25mhz),.noisy(SW[6]),.clean(obs3en));
            
     wire [9:0] bird_x, bird_y; //Bird has format x-coord, y-coord
     wire [9:0] prev_player_locx, prev_players_locy; //Keeps track of previous player location
@@ -110,8 +110,8 @@ module fpglappy(
     wire hs_enable, sound_background, sound_collide, sound_jump;
     wire showbit;
     wire one_hz, start_timer, expired;
-    wire [2:0] countdown;
-    wire [4:0] score;
+    wire [3:0] countdown;
+    wire [3:0] score;
     //Submodules --tested
     onehzstart onehzs(.clock(clock_25mhz), .one_hz_enable(one_hz));
     timer timer1(.clock(clock_25mhz), .start_timer(start_timer), .one_hz(one_hz), 
@@ -131,9 +131,12 @@ module fpglappy(
                  .hs_enable(hs_enable), .score(score),
                  .sound_collide(sound_collide), .sound_jump(sound_jump), .sound_background(sound_background));
     //add obs_gen
-    assign data = {sound_collide, sound_jump, score, 24'h012345, countdown};
-    
- 
+    assign LED[15] <= sound_collide;
+    assign LED[14] <= collision;
+    assign LED[13] <= sound_jump;
+    assign LED[12] <= jump;
+    assign LED[11] <= up;
+    assign data = {score, 24'h01234, countdown};
 //////////////////////////////////////////////////////////////////////////////////
 
 //Vision tracking player location 
@@ -162,10 +165,10 @@ wire [9:0] player_x, player_y;
     vga vga1(.vga_clock(clock_25mhz),.hcount(hcount),.vcount(vcount),
           .hsync(hsync),.vsync(vsync),.at_display_area(at_display_area));
 
-    spriteline spriteline1(.vsync(vsync),.birdX(bird_x),.birdY(bird_y),
-        .obs1x(obs1x),.obs1y(obs1y),.obs1en(obs1en),
-        .obs2x(obs2x),.obs2y(obs2y),.obs2en(obs2en),
-        .obs3x(obs3x),.obs3y(obs3y),.obs3en(obs3en),
+    spriteline spriteline1(.vsync(vsync),.birdY(200),
+        .obs1x(175),.obs1y(200),.obs1en(1),
+        .obs2x(350),.obs2y(400),.obs2en(1),
+        .obs3x(600),.obs3y(300),.obs3en(1),
         .hcount(hcount), .vcount(vcount),
         .at_display_area(at_display_area),.VGA_RGB({VGA_R,VGA_G,VGA_B}));
 
@@ -174,7 +177,7 @@ wire [9:0] player_x, player_y;
     
     // Audio
     assign AUD_SD=1;
-    audio audio(.clk(clock_25mhz),.jumpSound(sound_jump),.crashSound(sound_collide),.music(0),.PWM_out(AUD_PWM));
+    audio audio(.clk(clock_25mhz),.jumpSound(BTNR),.crashSound(BTNC),.music(0),.PWM_out(AUD_PWM));
 
 endmodule
 

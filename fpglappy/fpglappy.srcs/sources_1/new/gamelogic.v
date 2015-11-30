@@ -61,7 +61,8 @@ endmodule
 // Gamestate module: regulates the state of the game (PLAY, WIN, PAUSE, LOSE, HIGH_SCORE)
 //////////////////////////////////////////////////////////////////////////////////
 module gamestate(input clock, start, jump, collision, expired, one_hz,
-                 output reg hs_enable, sound_collide, sound_jump, sound_background, [4:0] score
+                 output reg hs_enable, sound_collide, sound_jump, sound_background, start_timer,
+                 output reg [4:0] score
                  );
     
         parameter START = 3'b000, PLAY = 3'b001, PAUSE = 3'b010, LOSE = 3'b011, HIGHSCORE= 3'b100;
@@ -91,7 +92,7 @@ module gamestate(input clock, start, jump, collision, expired, one_hz,
                     if (start) state <= START;
                 end
                 LOSE: begin
-                    if (start || expired) begin state <= PLAY;
+                    if (start || expired) state <= PLAY;
                     else start_timer <= 1;
                 end
             endcase
