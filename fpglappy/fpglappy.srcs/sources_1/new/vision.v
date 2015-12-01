@@ -17,6 +17,25 @@
 //  - Clean up code a bit
 //  - Integrate the Bram Module into here
 //
+// Parameters for Colors:
+//   Red:
+//    parameter uMin = 70;
+//    parameter uMax = 85;
+//    parameter vMin = 80;
+//    parameter vMax = 97;
+//    parameter yPmin = 5;
+//    01_40
+//    02_40
+//
+//  Green:
+//    parameter uMin = 21;
+//    parameter uMax = 37;
+//    parameter vMin = 61;
+//    parameter vMax = 76;
+//    parameter yPmin = 5;
+//    01_85
+//    02_85
+//
 ////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -151,6 +170,7 @@ module preprocessing(
     parameter uMax = 85;
     parameter vMin = 80;
     parameter vMax = 97;
+    parameter yPmin = 5;
 
     // RGB to YUV Conversion
     wire [6:0] y, u, v;
@@ -163,7 +183,7 @@ module preprocessing(
         .yP(yP));
 
     always@(*) begin
-        if (yP >= 5)
+        if (yP >= yPmin)
             // Check if pixel is in valid color range
             if(uMin <= u && uMax >= u && vMin <= v && vMax >= v)
                 newPixel <= 255;

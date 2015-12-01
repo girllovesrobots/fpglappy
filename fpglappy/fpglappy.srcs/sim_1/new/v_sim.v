@@ -85,9 +85,7 @@ module v_sim();
     assign b = currentPixel[4:0];
 
     initial begin
-        $display (" 10 %s  3  = %d","%", 10 % 3);
-        $display (" pls why u fuckuu work = %d", 0 + (0 % 3));
-        currentPixel = 16'h9800;
+        currentPixel = 16'h07E0;
         clk = 0;
         VSYNC_C = 0;
         HREF_C = 0;
