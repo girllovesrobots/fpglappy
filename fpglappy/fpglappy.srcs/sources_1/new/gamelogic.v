@@ -26,25 +26,20 @@ endmodule
 //////////////////////////////////////////////////////////////////////////////////
 // Obstacle Generator module: generates location of the obstacles
 //////////////////////////////////////////////////////////////////////////////////
-module obstacle_gen(input clock, obs1en, obs2en, obs3en,
+module obstacle_gen(input clock, [2:0] randbits,
                    // output reg obs1en, obs2en, obs3en,
                     output reg[9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y);
+        
         always @(posedge clock) begin  //144,784 (x) 35,515 (y)
-            if (obs1en) begin
-                obs1x <= 320;
-                obs1y <= 200;
-            end
-            
-            if (obs2en) begin
-                obs2x <= 500;
-                obs2y <= 400;
-            end
-            
-            if (obs3en) begin
-                obs3x <= 630;
-                obs3y <=50;
-            end
-            //must figure out some way to randomly generate??
+                                       //each pipe has width 64 bird has width 64
+            //randomly 
+           obs1x <= 300;//+(randbits*4);
+           obs1y <= 200;//;+(randbits*5);
+           obs2x <= obs1x+128; //+randbits*8;
+           obs2y <= 417;//-randbits*7;
+           obs3x <= 610;//+randbits*11;
+           obs3y <= 50;//+randbits*3;
+           
         end
 endmodule
 
@@ -56,8 +51,7 @@ module collision_detection(input clock, obs1en, obs2en, obs3en,
                            input [9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y,
                            output reg collision);
         always @(posedge clock) begin
-            collision <= ((bird_y+64 >= 514) || (bird_y<=36) || 
-                          (bird_x+64 >=783) || (bird_x <= 145))
+            collision <= ((bird_y+64 >= 510) || (bird_y<=36))
              ||((obs1en && (((bird_x+64>obs1x)&&(bird_x<(obs1x+64)))
                 &&((bird_y+64<obs1y)||(bird_y>(obs1y+128)))))
              ||(obs2en &&(((bird_x+64>obs2x)&&(bird_x<(obs2x+64)))
@@ -71,19 +65,24 @@ endmodule
 // Gamestate module: regulates the state of the game (PLAY, WIN, PAUSE, LOSE, HIGH_SCORE)
 //////////////////////////////////////////////////////////////////////////////////
 module gamestate(input clock, start, jump, collision, expired, one_hz,
-                 output reg hs_enable, sound_collide, sound_jump, sound_background, start_timer,
+                 output reg hs_enable, pause, sound_collide, sound_jump, sound_background, start_timer,
                  output reg [3:0] score
                  );
     
         parameter START = 3'b000, PLAY = 3'b001, PAUSE = 3'b010, LOSE = 3'b011, HIGHSCORE= 3'b100;
         reg [2:0] state;
         
-        initial state = PLAY;
+        initial state = START;
         initial start_timer = 0;
         initial sound_background = 1;
         initial sound_jump = 0;
         initial sound_collide = 0;
         initial hs_enable = 0;
+        
+        ///
+        ///If position of player_x, y is 0,0 then don't start the game
+        ///reset button
+        ///
         
         always @(posedge clock)  begin
             case (state)
@@ -96,14 +95,15 @@ module gamestate(input clock, start, jump, collision, expired, one_hz,
                 end
                 PLAY: begin
                     if (collision) state <= LOSE;
-                    else if (start) state <= PAUSE;
+                    else if (start) state <= PAUSE; //set pause bit to 1
                     else if (one_hz) begin
                         if (score<15) score <= score + 1;
                         else score <= score;
                     end
+                    
                 end
                 PAUSE: begin
-                    if (start) state <= START;
+                    if (start) state <= START;//set pause bit to 0
                 end
                 LOSE: begin
                     if (start || expired) state <= PLAY;
@@ -120,35 +120,34 @@ endmodule
 // Physics module: sets rate of bird movement (jumping/falling)
 //////////////////////////////////////////////////////////////////////////////////
 module physics(input clock, 
-               input up, five_hz, //used for testing jumps
+               input up, sixty_hz, //five_hz, //used for testing jumps
                input [9:0] player_x, player_y,
                output reg jump, 
                output reg [9:0] bird_x, bird_y, prev_player_locx, prev_player_locy
                );
                
-    parameter signed VELOCITY_UP = 3;
-    parameter signed GRAVITY = -1;
+    parameter signed VELOCITY_UP = 220;
+    parameter signed GRAVITY = -11;
     
-	reg prev_enable;
-	reg signed [7:0] velocity;
-	wire signed [10:0] bird_ys;
+	reg signed [19:0] velocity;
+	wire signed [18:0] bird_ys;
 	assign bird_ys = bird_y;
-	initial velocity = 10;
-	
+	initial velocity = 7;
+	reg prev_enable;
 	initial prev_enable =0;
         always @(posedge clock) begin
+        jump <= up;
             if (prev_enable ==0) begin
                 bird_y <= 250;
-		        prev_enable =1;
+                if (jump) prev_enable <= 1;
             //don't compare the two locations
             end
             //otherwise compare the two y-coord locations
             else begin
-                
-                if (five_hz) begin
-                    jump <= up;
+                if (sixty_hz) begin
                     velocity <= (up)? VELOCITY_UP: velocity+GRAVITY;
-                    bird_y <= bird_ys-velocity;
+                    if ((bird_ys-velocity/48) < 36 || (bird_ys-velocity/48)+64 > 514) bird_y <= bird_y;
+                    else bird_y <= bird_ys-velocity/48;
                 end
                 //below is with vision tracking ------
                 //jump <= (player_y > prev_player_locy+60)? 1:0;
@@ -212,7 +211,7 @@ module onehzstart(input clock,
         one_hz_enable <= (counter == 25_000_000)? 1: 0;
     end 
 endmodule
-
+/*
 module fivehzstart(input clock, 
               output reg five_hz_enable
               );
@@ -223,17 +222,17 @@ module fivehzstart(input clock,
         else if (counter > 5_000_000) counter <= 0;
         five_hz_enable <= (counter == 5_000_000)? 1: 0;
     end 
-endmodule
+endmodule*/
 
-/*
-module thirtyhzstart(input clock, 
-              output reg thirty_hz_enable
+
+module sixtyhzstart(input clock, 
+              output reg sixty_hz_enable
               );
     reg [31:0] counter;
     initial counter = 0;
     always @(posedge clock)  begin
-        if (counter < 333_334) counter <= counter + 1;
-        else if (counter > 333_333) counter <= 0;
-        thirty_hz_enable <= (counter == 333_333)? 1: 0;
+        if (counter < 416_667) counter <= counter + 1;
+        else if (counter > 416_666) counter <= 0;
+        sixty_hz_enable <= (counter == 416_666)? 1: 0;
     end 
-endmodule*/
+endmodule

@@ -106,14 +106,17 @@ module fpglappy(
 
     wire collision, jump;
     wire hs_enable, sound_background, sound_collide, sound_jump;
-    wire showbit;
+    wire showbit, pause;
     wire one_hz, five_hz, start_timer, expired;
     wire [3:0] countdown;
     wire [3:0] score;
+    wire [2:0] randbits;
+    assign randbits = bird_y[2:0];
+    
     //Submodules --tested
     onehzstart onehzs(.clock(clock_25mhz), .one_hz_enable(one_hz));
-    fivehzstart fivehzs(.clock(clock_25mhz), .five_hz_enable(five_hz));
-    //thirtyhzstart thirtyhzs(.clock(clock_25mhz), .thirty_hz_enable(thirty_hz));
+    //fivehzstart fivehzs(.clock(clock_25mhz), .five_hz_enable(five_hz));
+    sixtyhzstart sixtyhzs(.clock(clock_25mhz), .sixty_hz_enable(sixty_hz));
 
     timer timer1(.clock(clock_25mhz), .start_timer(start_timer), .one_hz(one_hz), 
                  .expired(expired), .countdown(countdown));
@@ -123,7 +126,7 @@ module fpglappy(
                            .collision(collision));
                            
     //submodules --not tested                     
-    physics phys(.clock(clock_25mhz), .five_hz(five_hz), .player_x(player_x), .player_y(player_y),
+    physics phys(.clock(clock_25mhz), .sixty_hz(sixty_hz), .player_x(player_x), .player_y(player_y),
                  .up(up), //button for testing
                  .jump(jump), .bird_x(bird_x), .bird_y(bird_y), 
                  .prev_player_locx(prev_player_locx), .prev_player_locy(prev_player_locy));
@@ -133,7 +136,7 @@ module fpglappy(
                  .hs_enable(hs_enable), .score(score),
                  .sound_collide(sound_collide), .sound_jump(sound_jump), .sound_background(sound_background));
     
-    obstacle_gen og(.clock(clock_25mhz), .obs1en(obs1en), .obs2en(obs2en), .obs3en(obs3en),
+    obstacle_gen og(.clock(clock_25mhz), .randbits(randbits),
                  .obs1x(obs1x), .obs1y(obs1y), .obs2x(obs2x), .obs2y(obs2y), .obs3x(obs3x), .obs3y(obs3y));
     
     assign LED[15] = sound_collide;
@@ -182,7 +185,7 @@ wire [9:0] player_x, player_y;
     
     // Audio
     assign AUD_SD=1;
-    audio audio(.clk(clock_25mhz),.jumpSound(BTNR),.crashSound(BTNC),.music(0),.PWM_out(AUD_PWM));
+    audio audio(.clk(clock_25mhz),.jumpSound(sound_jump),.crashSound(sound_collide),.music(sound_background),.PWM_out(AUD_PWM));
 
 endmodule
 
