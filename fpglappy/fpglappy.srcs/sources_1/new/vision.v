@@ -117,9 +117,7 @@ module vision(
         if(pixel_valid)
         begin
             start <= 0;
-            //dina <= (!sel) ? gray : dina_p;
-            dina <= pixel_data[15:8];
-            //dina <= 8'b11111111;
+            dina <= (!sel) ? {pixel_data[15:13],pixel_data[10:8],pixel_data[5:4]} : dina_p;
             addra <= cur_pixel;
             wea <= 1;
             cap <= (frame_done) ? 0 : cap;
