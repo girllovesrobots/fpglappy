@@ -54,7 +54,17 @@ module fpglappy(
     output[3:0] VGA_R,
     output[3:0] VGA_B,
     output[3:0] VGA_G,
-    output[7:0] JA,
+    // VISION STUFF --------------------------------------------
+    input PCLK_C,
+    input VSYNC_C,
+    input HREF_C,
+    output XCLK_C,
+    output SIOD_C,
+    output PWDN_C,
+    output RESET_C,
+    output SIOC_C,
+    input[7:0] JA,
+    // VISION STUFF --------------------------------------------
     output VGA_HS,
     output VGA_VS,
     output LED16_B, LED16_G, LED16_R,
@@ -74,8 +84,6 @@ module fpglappy(
     display_8hex display(.clk(clock_25mhz),.data(data), .seg(segments), .strobe(AN));    
     assign SEG[6:0] = segments;
     assign SEG[7] = 1'b1;
-
-    // Instantiate Vision Module
 
 //////////////////////////////////////////////////////////////////////////////////
 // Game Logic Specific wires, regs, and submodule calls
@@ -144,15 +152,12 @@ module fpglappy(
     assign LED[13] = sound_jump;
     assign LED[12] = jump;
     assign LED[11] = up;
-    assign data = {score, 24'h012345, countdown};
-//////////////////////////////////////////////////////////////////////////////////
+    //assign data = {score, 24'h012345, countdown};
+    //////////////////////////////////////////////////////////////////////////////////
 
-//Vision tracking player location 
-wire [9:0] player_x, player_y;
+    //Vision tracking player location 
+    wire [9:0] player_x, player_y;
  
-  //  vision tracking(.clk(clock_25mh),.x_pos(player_location[0]), .y_pos(player_location[1]),
-  //  .z_pos(player_location[2]));
-  
     wire src_1_req, src_1_done, src_1_rd, src_1_en;
     wire [31:0] src_1_addr;
     wire [7:0] dout;
@@ -164,6 +169,82 @@ wire [9:0] player_x, player_y;
         .SD_CD(SD_CD),.src_1_en(src_1_en),.dout(dout),.byte_available(byte_available),
         .ready_for_next_byte(ready_for_next_byte),.ready(ready),.SD_RESET(SD_RESET),
         .SD_SCK(SD_SCK),.SD_CMD(SD_CMD),.SD_DAT(SD_DAT));
+
+    /* Vision */
+    // Wires needed for BRAM
+    wire [18:0] addra;
+    wire [7:0] dina;
+    wire [7:0] douta;
+    wire wea;
+    reg [18:0] addrb;
+    wire [7:0] dinb;
+    wire [7:0] doutb;
+    wire web;
+
+    // Assign Multi-color LEDs
+    assign LED16_B = 0;
+    assign LED16_G = 0;
+    assign LED16_R = 1;
+    assign LED17_B = 0;
+    assign LED17_G = 0;
+    assign LED17_R = 1;
+
+    // Initialize Things
+    initial begin
+        addrb <= 0;
+    end
+
+    // Instantiate Vision Module
+
+    wire [9:0] player_location [2:0];
+    reg [19:0] next_pixel;
+    wire done_cam_config;
+    
+    assign player_x = player_location[0];
+    assign player_y = player_location[1];
+
+    assign XCLK_C = clock_25mhz;
+    assign RESET_C = 0;
+    assign PWDN_C = 0;
+
+    vision tracking(
+        .clk(clock_25mhz),
+        .x_pos(player_location[0]),
+        .y_pos(player_location[1]),
+        .z_pos(player_location[2]),
+        .sioc(SIOC_C),
+        .siod(SIOD_C),
+        .vsync(VSYNC_C),
+        .href(HREF_C),
+        .pclk(PCLK_C),
+        .p_data(JA),
+        .addra(addra),
+        .dina(dina),
+        .wea(wea),
+        .done_cam_config(done_cam_config),
+        .button_input(BTNC),
+        .sel(BTNU)
+    );
+
+    // BRAM
+    blk_mem block_memory(
+        .clka(CLK100MHZ),
+        .clkb(CLK100MHZ),
+        .addra(addra),
+        .dina(dina),
+        .douta(douta),
+        .wea(wea),
+        .addrb(addrb),
+        .dinb(dinb),
+        .doutb(doutb),
+        .web(web)
+    );
+
+
+    assign web = 0;
+    assign dinb = 0;
+    assign data = {6'b0, player_location[0], 6'b0, player_location[1]};
+    /* Vision */
 
     //////////////////////////////////////////////////////////////////////////////////
     // sample Verilog to generate color bars

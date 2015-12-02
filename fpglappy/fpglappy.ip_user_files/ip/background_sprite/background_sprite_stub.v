@@ -1,10 +1,10 @@
 // Copyright 1986-2015 Xilinx, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
-// Tool Version: Vivado v.2015.3 (win64) Build 1368829 Mon Sep 28 20:06:43 MDT 2015
-// Date        : Tue Dec 01 21:51:18 2015
-// Host        : Nick-PC running 64-bit Service Pack 1  (build 7601)
+// Tool Version: Vivado v.2015.3 (lin64) Build 1368829 Mon Sep 28 20:06:39 MDT 2015
+// Date        : Wed Dec  2 17:07:26 2015
+// Host        : cyanide running 64-bit Ubuntu 15.10
 // Command     : write_verilog -force -mode synth_stub
-//               C:/Users/Nick/Documents/fpglappy/fpglappy/fpglappy.srcs/sources_1/ip/background_sprite/background_sprite_stub.v
+//               /home/jmend/Documents/fpglapls/fpglappy/fpglappy/fpglappy.srcs/sources_1/ip/background_sprite/background_sprite_stub.v
 // Design      : background_sprite
 // Purpose     : Stub declaration of top-level module interface
 // Device      : xc7a100tcsg324-3
