@@ -107,11 +107,14 @@ module fpglappy(
     wire collision, jump;
     wire hs_enable, sound_background, sound_collide, sound_jump;
     wire showbit;
-    wire one_hz, start_timer, expired;
+    wire one_hz, five_hz, start_timer, expired;
     wire [3:0] countdown;
     wire [3:0] score;
     //Submodules --tested
     onehzstart onehzs(.clock(clock_25mhz), .one_hz_enable(one_hz));
+    fivehzstart fivehzs(.clock(clock_25mhz), .five_hz_enable(five_hz));
+    //thirtyhzstart thirtyhzs(.clock(clock_25mhz), .thirty_hz_enable(thirty_hz));
+
     timer timer1(.clock(clock_25mhz), .start_timer(start_timer), .one_hz(one_hz), 
                  .expired(expired), .countdown(countdown));
     collision_detection cd(.clock(clock_25mhz), .obs1en(obs1en), .obs2en(obs2en), .obs3en(obs3en),
@@ -120,7 +123,8 @@ module fpglappy(
                            .collision(collision));
                            
     //submodules --not tested                     
-    physics phys(.clock(clock_25mhz), .prev_enable(prev_enable), .player_x(player_x), .player_y(player_y),
+    physics phys(.clock(clock_25mhz), .five_hz(five_hz), .player_x(player_x), .player_y(player_y),
+                 .up(up), //button for testing
                  .jump(jump), .bird_x(bird_x), .bird_y(bird_y), 
                  .prev_player_locx(prev_player_locx), .prev_player_locy(prev_player_locy));
     
@@ -167,9 +171,9 @@ wire [9:0] player_x, player_y;
           .hsync(hsync),.vsync(vsync),.at_display_area(at_display_area));
 
     spriteline spriteline1(.vsync(vsync),.birdX(bird_x),.birdY(bird_y),
-        .obs1x(obs1x),.obs1y(obs1y),.obs1en(1),
-        .obs2x(obs2x),.obs2y(obs2y),.obs2en(1),
-        .obs3x(obs3x),.obs3y(obs3y),.obs3en(1),
+        .obs1x(obs1x),.obs1y(obs1y),.obs1en(obs1en),
+        .obs2x(obs2x),.obs2y(obs2y),.obs2en(obs2en),
+        .obs3x(obs3x),.obs3y(obs3y),.obs3en(obs3en),
         .hcount(hcount), .vcount(vcount),
         .at_display_area(at_display_area),.VGA_RGB({VGA_R,VGA_G,VGA_B}));
 
