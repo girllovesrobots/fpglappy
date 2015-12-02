@@ -29,15 +29,11 @@ module spriteline(
     input [9:0] hcount,
     input [9:0] vcount,
     input at_display_area,
-    input sd_en,
-    input sd_byte_available,
-    input sd_ready,
+    input [9:0] faceXCenter,faceYCenter,
+    input [7:0] facePixel,
+    output [18:0] pixelAddr,
     output [11:0] VGA_RGB,
-    output reg sd_req,
-    output reg sd_done,
-    output reg[31:0] sd_addr,
-    output reg[7:0] dout,
-    output sd_rd
+    output reg[7:0] dout
     );
 
     // Background
@@ -47,7 +43,7 @@ module spriteline(
     
     // Bird Sprite
     wire [11:0] birdOut;
-    sprite bird(.x(birdX),.y(birdY),.hcount(hcount),.vcount(vcount),.enable(1),.pixelIn(background),.pixelOut(birdOut));
+    sprite bird(.x(birdX),.y(birdY),.hcount(hcount),.vcount(vcount),.enable(1),.pixelIn(obs3Out),.pixelOut(birdOut));
     
     // Obstacles
     wire[10:0] pipeMemAddress;
@@ -58,13 +54,13 @@ module spriteline(
     wire[10:0] pipe3Addr;    
     
     wire [11:0] obs1Out;
-    obstacle obstacle1(.x(obs1x),.y(obs1y),.hcount(hcount),.vcount(vcount),.enable(obs1en),.memPixel(pipeMemVal),.pixelIn(birdOut),.memAddr(pipe1Addr),.pixelOut(obs1Out));
+    obstacle obstacle1(.x(obs1x),.y(obs1y),.hcount(hcount),.vcount(vcount),.enable(obs1en),.memPixel(pipeMemVal),.pixelIn(background),.memAddr(pipe1Addr),.pixelOut(obs1Out));
     wire [11:0] obs2Out;
     obstacle obstacle2(.x(obs2x),.y(obs2y),.hcount(hcount),.vcount(vcount),.enable(obs2en),.memPixel(pipeMemVal),.pixelIn(obs1Out),.memAddr(pipe2Addr),.pixelOut(obs2Out));
     wire [11:0] obs3Out;
     obstacle obstacle3(.x(obs3x),.y(obs3y),.hcount(hcount),.vcount(vcount),.enable(obs3en),.memPixel(pipeMemVal),.pixelIn(obs2Out),.memAddr(pipe3Addr),.pixelOut(obs3Out));
     
-    assign VGA_RGB = (at_display_area)? obs3Out : 0;
+    assign VGA_RGB = (at_display_area)? birdOut : 0;
     /*
     assign VGA_R = at_display_area ? {4{hcount[7]}} : 0;
     assign VGA_G = at_display_area ? {4{hcount[6]}} : 0;
@@ -111,18 +107,33 @@ endmodule
 
 module sprite
        #(parameter WIDTH = 64,            // default width: 64 pixels
-                   HEIGHT = 64,           // default height: 64 pixels
-                   COLOR = 12'hF_F_F)  // default color: white
+                   HEIGHT = 64,
+                   SCALE_FACTOR=1)           // default height: 64 pixels
        (input [9:0] x,hcount,
         input [9:0] y,vcount,
         input enable,
+        input [7:0] facePixel,
+        input [9:0] faceXCenter,faceYCenter,
         input [11:0] pixelIn,
+        output [18:0] pixelAddr,
         output [11:0] pixelOut);
+        
+        //First, calculate top left corner of image to be fetched
+        wire [9:0] faceXOrigin = faceXCenter - ((WIDTH/2) << SCALE_FACTOR);
+        wire [9:0] faceYOrigin = faceYCenter - ((HEIGHT/2) << SCALE_FACTOR);
+        
+        //Now find the pixel of the face we want
+        wire [9:0] faceX = faceXOrigin + ((hcount-x)<<SCALE_FACTOR);
+        wire [9:0] faceY = faceYOrigin + ((vcount-y)<<SCALE_FACTOR);
+        
+        //Now calculate the address that corresponds with that pixel
+        assign pixelAddr = faceX + (faceY*480);
     
+        //Now the vale at that pixel is in facePixel
         assign pixelOut =
                 ((hcount >= x && hcount < (x+WIDTH)) &&
                  (vcount >= y && vcount < (y+HEIGHT)) &&
-                 enable)?               COLOR : pixelIn;
+                 enable)?               facePixel : pixelIn;
                  
 endmodule
 
