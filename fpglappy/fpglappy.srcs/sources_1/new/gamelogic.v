@@ -127,10 +127,12 @@ module physics(input clock,
                );
                
     parameter signed VELOCITY_UP = 3;
-    parameter signed GRAVITY = 1;
+    parameter signed GRAVITY = -1;
     
 	reg prev_enable;
 	reg signed [7:0] velocity;
+	wire signed [10:0] bird_ys;
+	assign bird_ys = bird_y;
 	initial velocity = 10;
 	
 	initial prev_enable =0;
@@ -142,11 +144,11 @@ module physics(input clock,
             end
             //otherwise compare the two y-coord locations
             else begin
+                
                 if (five_hz) begin
                     jump <= up;
-                    velocity <= (up)? VELOCITY_UP: velocity-GRAVITY;
-                    if (velocity < 0) bird_y <= bird_y - velocity;
-                    else bird_y<= bird_y + velocity;
+                    velocity <= (up)? VELOCITY_UP: velocity+GRAVITY;
+                    bird_y <= bird_ys-velocity;
                 end
                 //below is with vision tracking ------
                 //jump <= (player_y > prev_player_locy+60)? 1:0;
