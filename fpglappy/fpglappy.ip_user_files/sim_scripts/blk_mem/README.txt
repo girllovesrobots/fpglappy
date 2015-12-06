@@ -14,7 +14,7 @@ To simulate design, cd to the simulator directory and execute the script.
 For example:-
 
 % cd questa
-% ./top.sh
+% ./top.bat
 
 The export simulation flow requires the Xilinx pre-compiled simulation library
 components for the target simulator. These components are referred using the
@@ -29,7 +29,7 @@ library information using this switch while executing the generated script.
 
 For example:-
 
-% ./top.sh -lib_map_path /design/questa/clibs
+% ./top.bat -lib_map_path c:\design\questa\clibs
 
 Please refer to the generated script header 'Prerequisite' section for more details.
 
@@ -38,20 +38,20 @@ Please refer to the generated script header 'Prerequisite' section for more deta
 By default, if the -directory switch is not specified, export_simulation will
 create the following directory structure:-
 
-<current_working_directory>/export_sim/<simulator>
+<current_working_directory>\export_sim\<simulator>
 
-For example, if the current working directory is /tmp/test, export_simulation
+For example, if the current working directory is c:\tmp\test, export_simulation
 will create the following directory path:-
 
-/tmp/test/export_sim/questa
+c:\tmp\test\export_sim\questa
 
 If -directory switch is specified, export_simulation will create a simulator
 sub-directory under the specified directory path.
 
-For example, 'export_simulation -directory /tmp/test/my_test_area/func_sim'
+For example, 'export_simulation -directory c:\tmp\test\my_test_area\func_sim'
 command will create the following directory:-
 
-/tmp/test/my_test_area/func_sim/questa
+c:\tmp\test\my_test_area\func_sim\questa
 
 By default, if -simulator is not specified, export_simulation will create a
 simulator sub-directory for each simulator and export the files for each simulator

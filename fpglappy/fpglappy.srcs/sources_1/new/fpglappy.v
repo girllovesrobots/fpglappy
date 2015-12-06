@@ -106,6 +106,10 @@ module fpglappy(
        debounce dbo2(.reset(0),.clock(clock_25mhz),.noisy(SW[5]),.clean(obs2en));
     wire obs3en;
        debounce dbo3(.reset(0),.clock(clock_25mhz),.noisy(SW[6]),.clean(obs3en));
+    wire pause;
+       debounce dbo4(.reset(0),.clock(clock_25mhz),.noisy(SW[7]),.clean(pause));
+    wire showCam;
+       debounce dbo5(.reset(0),.clock(clock_25mhz),.noisy(SW[8]),.clean(showCam));
 
            
     wire [9:0] bird_x, bird_y; //Bird has format x-coord, y-coord
@@ -189,11 +193,6 @@ module fpglappy(
     assign LED17_G = 0;
     assign LED17_R = 1;
 
-    // Initialize Things
-    initial begin
-        addrb <= 0;
-    end
-
     // Instantiate Vision Module
 
     wire [9:0] player_location [2:0];
@@ -237,7 +236,7 @@ module fpglappy(
         .addrb(addrb),
         .dinb(dinb),
         .doutb(doutb),
-        .web(web)
+        .web(0) //enable
     );
 
 
@@ -253,13 +252,26 @@ module fpglappy(
     wire hsync, vsync, at_display_area;
     vga vga1(.vga_clock(clock_25mhz),.hcount(hcount),.vcount(vcount),
           .hsync(hsync),.vsync(vsync),.at_display_area(at_display_area));
-
+    
+    wire [3:0] VGA_R_GAME,VGA_G_GAME,VGA_B_GAME;
+    wire [18:0] faceSpriteAddr;
     spriteline spriteline1(.vsync(vsync),.birdX(bird_x),.birdY(bird_y),
         .obs1x(obs1x),.obs1y(obs1y),.obs1en(obs1en),
         .obs2x(obs2x),.obs2y(obs2y),.obs2en(obs2en),
         .obs3x(obs3x),.obs3y(obs3y),.obs3en(obs3en),
         .hcount(hcount), .vcount(vcount),
-        .at_display_area(at_display_area),.VGA_RGB({VGA_R,VGA_G,VGA_B}));
+        .at_display_area(at_display_area),
+        .faceXCenter(player_x), .faceYCenter(player_y),
+        .facePixel(doutb), .pixelAddr(faceSpriteAddr),
+        .pause(pause),
+        .VGA_RGB({VGA_R_GAME,VGA_G_GAME,VGA_B_GAME}));
+
+    always @(posedge clock_25mhz) begin
+        addrb <= (showCam)? (hcount + 640*vcount) : faceSpriteAddr;
+    end
+    assign VGA_R = (at_display_area) ? ((showCam) ? {doutb[7:5],1'b0} : VGA_R_GAME):0;
+    assign VGA_G = (at_display_area) ? ((showCam) ? {doutb[4:2],1'b0} : VGA_G_GAME):0;
+    assign VGA_B = (at_display_area) ? ((showCam) ? {doutb[1:0],2'b00} : VGA_B_GAME):0;    
 
     assign VGA_HS = ~hsync;
     assign VGA_VS = ~vsync;

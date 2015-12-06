@@ -31,6 +31,7 @@ module spriteline(
     input at_display_area,
     input [9:0] faceXCenter,faceYCenter,
     input [7:0] facePixel,
+    input pause,
     output [18:0] pixelAddr,
     output [11:0] VGA_RGB,
     output reg[7:0] dout
@@ -43,7 +44,10 @@ module spriteline(
     
     // Bird Sprite
     wire [11:0] birdOut;
-    sprite bird(.x(birdX),.y(birdY),.hcount(hcount),.vcount(vcount),.enable(1),.pixelIn(obs3Out),.pixelOut(birdOut));
+    sprite bird(.x(birdX),.y(birdY),
+        .hcount(hcount),.vcount(vcount),.enable(1),
+        .facePixel(facePixel),.faceXCenter(faceXCenter),.faceYCenter(faceYCenter),
+        .pixelIn(obs3Out),.pixelAddr(pixelAddr),.pixelOut(birdOut));
     
     // Obstacles
     wire[10:0] pipeMemAddress;
@@ -60,7 +64,9 @@ module spriteline(
     wire [11:0] obs3Out;
     obstacle obstacle3(.x(obs3x),.y(obs3y),.hcount(hcount),.vcount(vcount),.enable(obs3en),.memPixel(pipeMemVal),.pixelIn(obs2Out),.memAddr(pipe3Addr),.pixelOut(obs3Out));
     
-    assign VGA_RGB = (at_display_area)? birdOut : 0;
+    wire[3:0] newRed = {birdOut[7:6],1'b11};
+    wire[11:0] pause_out = (pause)? {newRed,2'b00,birdOut[4:3],2'b00,birdOut[1:0]}:birdOut; // Tint red in case of pause
+    assign VGA_RGB = (at_display_area)? pause_out : 0;
     /*
     assign VGA_R = at_display_area ? {4{hcount[7]}} : 0;
     assign VGA_G = at_display_area ? {4{hcount[6]}} : 0;
@@ -98,7 +104,7 @@ module spriteline(
     reg[3:0] vsyncDivide = 0;
     always @ (posedge vsync) begin
         vsyncDivide <= vsyncDivide+1;
-        if (vsyncDivide == 0) begin
+        if (vsyncDivide == 0 && !pause) begin
             backgroundPos <= backgroundPos + 1;
         end
     end
@@ -108,7 +114,7 @@ endmodule
 module sprite
        #(parameter WIDTH = 64,            // default width: 64 pixels
                    HEIGHT = 64,
-                   SCALE_FACTOR=1)           // default height: 64 pixels
+                   SCALE_FACTOR=2)           // default height: 64 pixels
        (input [9:0] x,hcount,
         input [9:0] y,vcount,
         input enable,
@@ -127,7 +133,7 @@ module sprite
         wire [9:0] faceY = faceYOrigin + ((vcount-y)<<SCALE_FACTOR);
         
         //Now calculate the address that corresponds with that pixel
-        assign pixelAddr = faceX + (faceY*480);
+        assign pixelAddr = faceX + (faceY*640);
     
         //Now the vale at that pixel is in facePixel
         assign pixelOut =
