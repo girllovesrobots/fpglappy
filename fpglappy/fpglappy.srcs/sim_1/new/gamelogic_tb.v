@@ -6,80 +6,35 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module gamelogic_tb;
-/* Timer TestBench -- Tested 10/18/2015
+
+/* randombit TestBench -- Tested*/
 
 // Inputs
     reg clock;
-    reg reset_sync;
-    reg reprogram;
-    reg start_timer;
-    reg one_hz;
-    reg [1:0] tselec;
-    reg [3:0] state;
-    reg [3:0] tvalue;
 
 // Outputs  
-    wire expired;
-    wire [3:0] timer;
+    wire [3:0] randbit;
 
-    timeparam uut(
+    randombit uut(
         .clock(clock),
-        .reset_sync(reset_sync),
-        .reprogram(reprogram),
-        .start_timer(start_timer),
-        .one_hz(one_hz),
-        .tselec(tselec),
-        .state(state),
-        .tvalue(tvalue),
-        .expired(expired),
-        .timer(timer)
+        .randbit(randbit)
     );
     
-    always #10 clock = !clock; //change clock every 100_000 ns
+    always #10 clock = !clock; //change clock every 10 ns
     
     initial begin
         //Initialize Inputs
         clock = 0;
-        reset_sync = 0;
-        reprogram =0;
-        start_timer=0;
-        one_hz =0;
-        tselec = 2'b00;
-        state=4'b0001; //START AT PTRIGGER 
-        tvalue = 4'b0000;
-        
         // Wait 100 ns for global reset to finish
         #100;
-            
-        // Add stimulus here
-        //////////////////////////////////////////////
-        start_timer = 1;
-        one_hz= 1;
-        #20;
-        start_timer = 0;
-        #1000; //Should be counting down
-        start_timer = 1;
-        state = 4'b0100;
-        one_hz=1;//Should be counting down
-        #20;
-        one_hz=0; //Should not counting down
-        #1000
-        one_hz = 1;
-        #1000; //Expired should eventually be asserted to 1;
-        reset_sync = 1;
-        start_timer = 0;
-        #100;
-        reprogram = 1;
-        tselec = 2'b10;
-        tvalue = 4'b0010;
-        state = 4'b0001;
-        #100;
-        start_timer =1;
-        one_hz =1;
-        /////////////////////////////////////////////
+        
+        //Add stimulus here
+
     end
-*/
-/* GameState TestBench -- Tested */
+
+
+
+/* GameState TestBench --
 
 // Inputs
     reg clock;
@@ -163,8 +118,7 @@ module gamelogic_tb;
         expired = 1;
         /////////////////////////////////////////////
     end
-
-
+*/
 /* Collision TestBench -- Tested
 
 // Inputs
@@ -242,7 +196,6 @@ module gamelogic_tb;
         /////////////////////////////////////////////
         end
 */
-
 /* Timer TestBench -- Tested
 // Inputs
     reg clock;
@@ -301,4 +254,3 @@ module gamelogic_tb;
     end
 */
 endmodule
-

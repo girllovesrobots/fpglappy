@@ -92,6 +92,7 @@ module fpglappy(
     // BTNC is start
     wire start; //Assert = start game, deassert = pause
        debounce db1(.reset(0),.clock(clock_25mhz),.noisy(BTNC),.clean(start));
+    wire reset; //Assert = reset the game
     wire up; //Used for testing if a jump occurs
        debounce db2(.reset(0),.clock(clock_25mhz),.noisy(BTNU),.clean(up));
     //Game Level
@@ -111,7 +112,9 @@ module fpglappy(
     wire showCam;
        debounce dbo5(.reset(0),.clock(clock_25mhz),.noisy(SW[8]),.clean(showCam));
 
-           
+    //Vision tracking player location 
+    wire [9:0] player_x, player_y;
+ 
     wire [9:0] bird_x, bird_y; //Bird has format x-coord, y-coord
     wire [9:0] prev_player_locx, prev_players_locy; //Keeps track of previous player location
     wire [9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y; //x and y coords for the obstacles
@@ -119,12 +122,9 @@ module fpglappy(
     wire collision, jump;
     wire hs_enable, sound_background, sound_collide, sound_jump;
     wire showbit, pause;
-    wire one_hz, five_hz, start_timer, expired;
-    wire [3:0] countdown;
-    wire [3:0] score;
-    wire [2:0] randbits;
-    assign randbits = bird_y[2:0];
-    
+    wire one_hz, sixty_hz, start_timer, expired;
+    wire [3:0] countdown, score, randbit;
+   
     //Submodules --tested
     onehzstart onehzs(.clock(clock_25mhz), .one_hz_enable(one_hz));
     //fivehzstart fivehzs(.clock(clock_25mhz), .five_hz_enable(five_hz));
@@ -148,9 +148,11 @@ module fpglappy(
                  .hs_enable(hs_enable), .score(score),
                  .sound_collide(sound_collide), .sound_jump(sound_jump), .sound_background(sound_background));
     
-    obstacle_gen og(.clock(clock_25mhz), .randbits(randbits),
+    obstacle_gen og(.clock(clock_25mhz), .randbit(randbit),
                  .obs1x(obs1x), .obs1y(obs1y), .obs2x(obs2x), .obs2y(obs2y), .obs3x(obs3x), .obs3y(obs3y));
     
+    randombit rb(.clock(clock_25mhz), .randbit(randbit));
+
     assign LED[15] = sound_collide;
     assign LED[14] = collision;
     assign LED[13] = sound_jump;
@@ -159,8 +161,7 @@ module fpglappy(
     //assign data = {score, 24'h012345, countdown};
     //////////////////////////////////////////////////////////////////////////////////
 
-    //Vision tracking player location 
-    wire [9:0] player_x, player_y;
+
  
     wire src_1_req, src_1_done, src_1_rd, src_1_en;
     wire [31:0] src_1_addr;

@@ -26,19 +26,19 @@ endmodule
 //////////////////////////////////////////////////////////////////////////////////
 // Obstacle Generator module: generates location of the obstacles
 //////////////////////////////////////////////////////////////////////////////////
-module obstacle_gen(input clock, [2:0] randbits,
+module obstacle_gen(input clock, randbit,
                    // output reg obs1en, obs2en, obs3en,
                     output reg[9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y);
         
         always @(posedge clock) begin  //144,784 (x) 35,515 (y)
                                        //each pipe has width 64 bird has width 64
             //randomly 
-           obs1x <= 300;//+(randbits*4);
-           obs1y <= 200;//;+(randbits*5);
-           obs2x <= obs1x+128; //+randbits*8;
-           obs2y <= 417;//-randbits*7;
-           obs3x <= 610;//+randbits*11;
-           obs3y <= 50;//+randbits*3;
+           obs1x <= 300;//+(randbit*4);
+           obs1y <= 200;//;+(randbit*5);
+           obs2x <= obs1x+128; //+randbit*8;
+           obs2y <= 417;//-randbit*7;
+           obs3x <= 610;//+randbit*11;
+           obs3y <= 50;//+randbit*3;
            
         end
 endmodule
@@ -195,6 +195,25 @@ module timer(input clock, start_timer, one_hz,
     end
 endmodule
 
+
+//////////////////////////////////////////////////////////////////////////////////
+// randombit module - Returns random bit
+// used for physics smoothing of movement
+//////////////////////////////////////////////////////////////////////////////////
+module randombit(input clock,
+              output [3:0] randbit
+              );
+    
+    integer add;
+    wire [3:0] randbit;
+    assign randbit  = add;
+    
+    always@(posedge clock) begin
+        add = {$random} % (10); 
+    end
+     
+endmodule
+
 //////////////////////////////////////////////////////////////////////////////////
 // onehzstart module - Asserts oneHz cycle (asserts every second)
 // used for countdown in seconds by the timer module
@@ -224,7 +243,10 @@ module fivehzstart(input clock,
     end 
 endmodule*/
 
-
+//////////////////////////////////////////////////////////////////////////////////
+// sixtyhzstart module - Asserts 60Hz cycle (asserts 60/second)
+// used for physics smoothing of movement
+//////////////////////////////////////////////////////////////////////////////////
 module sixtyhzstart(input clock, 
               output reg sixty_hz_enable
               );
