@@ -114,11 +114,11 @@ module collision_detection(input clock, updatepos, reset_collision,
                 if (updatepos) begin
                     collision <= (((bird_y+BIRDSIZE >= 505) || (bird_y<=42))
                     || obs1en&&((((bird_x+BIRDSIZE)>obs1x) && (bird_x<(obs1x+OBSW)))
-                    &&((bird_y+BIRDSIZE<obs1y)||(bird_y>(obs1y+OBSH))))
+                    &&((bird_y<obs1y)||((bird_y+BIRDSIZE)>(obs1y+OBSH))))
                     || obs2en&&((((bird_x+BIRDSIZE)>obs2x) && (bird_x<(obs2x+OBSW)))
-                    &&((bird_y+BIRDSIZE<obs2y)||(bird_y>(obs2y+OBSH))))
+                    &&((bird_y<obs2y)||((bird_y+BIRDSIZE)>(obs2y+OBSH))))
                     || obs3en&&((((bird_x+BIRDSIZE)>obs3x) && (bird_x<(obs3x+OBSW)))
-                    &&((bird_y+BIRDSIZE<obs3y)||(bird_y>(obs3y+OBSH))))
+                    &&((bird_y<obs3y)||((bird_y+BIRDSIZE)>(obs3y+OBSH))))
                     )? 1:0;
                 
                     pass <= (((bird_x>(obs1x+OBSW+1))||(bird_x>(obs2x+OBSW+1))||(bird_x>(obs3x+OBSW+1))) && !collision) ? 1:0;
@@ -221,7 +221,7 @@ endmodule
 // Physics module: sets rate of bird movement (jumping/falling)
 //////////////////////////////////////////////////////////////////////////////////
 module physics(input clock, updatepos, reset_physics,
-               input sixty_hz, frameupdate,
+               input sixty_hz, frameupdate, up,
                input [9:0] player_x, player_y,
                input [10:0] signed_y_vel,
                output reg jump, prev_enable, [19:0] diff,
@@ -264,7 +264,7 @@ module physics(input clock, updatepos, reset_physics,
                 else if (updatepos) begin
                 //otherwise compare the two y-coord locations
                     if (frameupdate) begin
-                        jump <= (signed_y_vel>2)?  1:0;
+                        jump <= (up || signed_y_vel>2)?  1:0;
                         prev_player_locx <= player_x;
                         prev_player_locy <= player_y;
                     end

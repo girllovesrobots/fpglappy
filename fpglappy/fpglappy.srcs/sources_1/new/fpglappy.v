@@ -104,8 +104,6 @@ module fpglappy(
        debounce_wrapper db71(.reset(0),.clock(clock_25mhz),.noisy(SW[2]),.clean(gamelvl[2]));
        debounce_wrapper db72(.reset(0),.clock(clock_25mhz),.noisy(SW[1]),.clean(gamelvl[1]));
        debounce_wrapper db73(.reset(0),.clock(clock_25mhz),.noisy(SW[0]),.clean(gamelvl[0]));
-    //wire pause;
-    //   debounce dbo4(.reset(0),.clock(clock_25mhz),.noisy(SW[7]),.clean(pause));
     wire showCam;
         debounce_wrapper dbo5(.reset(0),.clock(clock_25mhz),.noisy(SW[8]),.clean(showCam));
     wire startScreen;
@@ -158,7 +156,7 @@ module fpglappy(
                   .sound_collide(sound_collide), .sound_jump(sound_jump), .sound_background(sound_background));
           
     //submodules --not tested                     
-    physics phys(.clock(clock_25mhz), .updatepos(updatepos), .reset_physics(reset_physics),
+    physics phys(.clock(clock_25mhz), .updatepos(updatepos), .reset_physics(reset_physics), .up(up),
                  .sixty_hz(sixty_hz), .player_x(player_x), .player_y(player_y), .frameupdate(frameupdate),
                  .jump(jump), .bird_x(bird_x), .bird_y(bird_y), .prev_enable(prev_enable),
                  .prev_player_locx(prev_player_locx), .prev_player_locy(prev_player_locy));
