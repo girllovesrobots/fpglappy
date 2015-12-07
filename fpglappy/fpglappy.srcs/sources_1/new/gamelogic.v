@@ -264,7 +264,7 @@ module physics(input clock, updatepos, reset_physics,
                 else if (updatepos) begin
                 //otherwise compare the two y-coord locations
                     if (frameupdate) begin
-                        jump <= (up || signed_y_vel>2)?  1:0;
+                        jump <= (up || signed_y_vel>200)?  1:0;
                         prev_player_locx <= player_x;
                         prev_player_locy <= player_y;
                     end
