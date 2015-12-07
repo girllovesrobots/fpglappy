@@ -76,13 +76,13 @@ module obstacle_gen(input clock, updatepos, [3:0] randbit, reset_physics,
                     obs1x <= obs1x-1;
                     if (obs1x<36) begin
                         obs1x<= 784;
-                        obs1y <= 200+(randbit*5);
+                        obs1y <= (randbit[2]==1'b0)? 200+(randbit*10):300-(randbit*11);
                     end
                 end
                 if (obs2) begin
                     obs2x <= obs2x-1;
                     if (obs2x<35) begin
-                        obs2y <= 417-(randbit*7);
+                        obs2y <= (randbit[0]==1'b1)? 400-(randbit*7):125+(randbit*2);
                         obs2x<= 784;
                     end
                 end
@@ -90,13 +90,13 @@ module obstacle_gen(input clock, updatepos, [3:0] randbit, reset_physics,
                     obs3x <= obs3x-1;
                     if (obs3x<35) begin
                         obs3x<= 784;
-                        obs3y <= 50+(randbit*3);
+                        obs3y <=  (randbit[3]==1'b1)? 300: 50+(randbit*3);
                     end
                 end
            end
-           if (!obs1) obs1y <= 200+(randbit*5);
-           if (!obs2) obs2y <= 417-(randbit*7);
-           if (!obs3) obs3y <= 50+(randbit*3);
+           if (!obs1) obs1y <= (randbit[2]==1'b0)? 200+(randbit*10):300-(randbit*11);
+           if (!obs2) obs2y <= (randbit[0]==1'b1)? 400-(randbit*7):125+(randbit*2);
+           if (!obs3) obs3y <= (randbit[3]==1'b1)? 300: 50+(randbit*3);
         end
 endmodule
 
@@ -172,21 +172,21 @@ module gamestate(input clock, start, reset, jump, collision, expired, one_hz,
                         if (start) begin
                             state <= PLAY;
                             home_enable <=0;
-                            updatepos <= 1;
                             reset_physics <=0;
                             reset_score <=0;
                             reset_collision <=0;
                         end
                     end
                     PLAY: begin //normal state of game
-                        /*if (collision) begin
+                        if (collision) begin
                             state <= LOSE;
                             updatepos <=0;
                             hs_enable <=1;
                             sound_collide <=1;
                             start_timer <=1;
                         end
-                        else*/ if (start) begin
+                        else if (jump) updatepos <=1;
+                        else if (start) begin
                             state <= PAUSE;
                             updatepos <=0;
                             pause <=1; //set pause bit to 1
@@ -245,19 +245,22 @@ module physics(input clock, updatepos, reset_physics,
 	wire signed [10:0] subppy;
 	assign subppy =prev_player_locy-100;
 	reg signed [3:0] count;
+	wire signed [8:0] thresh;
+	wire signed [9:0] calc;
+	assign calc = 0-thresh;
 	
 	reg prev_enable;
 	initial prev_enable =0;
 	
         always @(posedge clock) begin
-        jump <= up;
+        
             if (reset_physics) begin
                 prev_enable <=0;
                 velocity <= 7;
                 bird_y<=250;
             end
             else begin
-                //jump <= (up || signed_y_vel>velocity_thresh)?  1:0;
+            jump <= (up || (signed_y_vel<4))?  1:0;
                 if (prev_enable ==0) begin
                     bird_y <= 250;
                     if (jump) prev_enable <= 1;

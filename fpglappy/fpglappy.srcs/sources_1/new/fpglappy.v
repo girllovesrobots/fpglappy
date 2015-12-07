@@ -276,7 +276,7 @@ module fpglappy(
 
     assign web = 0;
     assign dinb = 0;
-    assign data = {6'b0, player_location[0], 6'b0, player_location[1]};
+    assign data = {signed_y_vel};
     /* Vision */
 
     //////////////////////////////////////////////////////////////////////////////////
