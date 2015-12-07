@@ -260,7 +260,7 @@ module physics(input clock, updatepos, reset_physics,
                 bird_y<=250;
             end
             else begin
-            jump <= (up || (signed_y_vel<-8))?  1:0;
+            jump <= (up || (signed_y_vel<-6))?  1:0;
                 if (prev_enable ==0) begin
                     bird_y <= 250;
                     if (jump) prev_enable <= 1;
