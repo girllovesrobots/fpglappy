@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+`timescale 1ns / 1p
 //////////////////////////////////////////////////////////////////////////////////
 // Create Date: 11/17/2015 06:04:04 PM
 // Engineer Name: Wei Low
@@ -223,18 +223,26 @@ endmodule
 module physics(input clock, updatepos, reset_physics,
                input sixty_hz, frameupdate,
                input [9:0] player_x, player_y,
-               output reg jump, prev_enable,
+               input [10:0] signed_y_vel,
+               output reg jump, prev_enable, [19:0] diff,
                output reg [9:0] bird_x, bird_y, prev_player_locx, prev_player_locy
                );
                
     parameter signed VELOCITY_UP = 220;
     parameter signed GRAVITY = -11;
     
+    wire signed [20:0] diff;
 	reg signed [19:0] velocity;
 	wire signed [18:0] bird_ys;
 	assign bird_ys = bird_y;
 	initial velocity = 7;
-	
+	wire signed [10:0] pplocy;
+	wire signed [10:0] py;
+	assign pplocy = prev_player_locy;
+	assign py = player_y;
+	assign diff = pplocy-py;
+	wire signed [10:0] subppy;
+	assign subppy =prev_player_locy-100;
 	reg signed [3:0] count;
 	
 	reg prev_enable;
@@ -255,7 +263,11 @@ module physics(input clock, updatepos, reset_physics,
                 end
                 else if (updatepos) begin
                 //otherwise compare the two y-coord locations
-                    if (frameupdate) jump <= (((prev_player_locy-200)>0)&&((prev_player_locy-200)>=player_y))?  1: 0;
+                    if (frameupdate) begin
+                        jump <= (signed_y_vel>2)?  1:0;
+                        prev_player_locx <= player_x;
+                        prev_player_locy <= player_y;
+                    end
                     if (sixty_hz) begin
                          velocity <= (jump)? VELOCITY_UP: velocity+GRAVITY;
                          if ((bird_ys-velocity/48) < 36 || (bird_ys-velocity/48)+64 > 514) bird_y <= bird_y;
@@ -271,6 +283,7 @@ module physics(input clock, updatepos, reset_physics,
         end
         
 endmodule
+
 
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -349,5 +362,16 @@ module sixtyhzstart(input clock,
         if (counter < 416_667) counter <= counter + 1;
         else if (counter > 416_666) counter <= 0;
         sixty_hz_enable <= (counter == 416_666)? 1: 0;
+    end 
+endmodule
+
+module thirtyhzstart(input clock, 
+              output reg thirty_hz_enable
+              );
+    reg [31:0] counter;
+    initial counter = 0;
+    always @(posedge clock)  begin
+        counter <= (counter < 208_334) ? counter + 1 : 0;
+        thirty_hz_enable <= (counter == 208_333)? 1: 0;
     end 
 endmodule
