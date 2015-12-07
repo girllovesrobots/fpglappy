@@ -12,29 +12,6 @@
 // Authors: Julian Mendoza
 //
 //
-// TODO:
-//  - Allow player to use more colors for hats
-//  - Clean up code a bit
-//  - Integrate the Bram Module into here
-//
-// Parameters for Colors:
-//   Red:
-//    parameter uMin = 70;
-//    parameter uMax = 85;
-//    parameter vMin = 80;
-//    parameter vMax = 97;
-//    parameter yPmin = 5;
-//    01_40
-//    02_40
-//
-//  Green:
-//    parameter uMin = 21;
-//    parameter uMax = 37;
-//    parameter vMin = 61;
-//    parameter vMax = 76;
-//    parameter yPmin = 5;
-//    01_85
-//    02_85
 //
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -57,7 +34,8 @@ module vision(
     output reg wea, // Write Enable for bram (vision)
     output wire done_cam_config, // Camera configuration done (camera_configure)
     input wire button_input, // TODO: Remove? (fpglappy)
-    input wire sel // TODO: Remove? (fpglappy)
+    input wire sel, // TODO: Remove? (fpglappy)
+    output reg signed [10:0] y_vel // Signed Y Velocity (vision)
     );
 
     parameter NUM_PIXELS_H=640;
@@ -66,6 +44,8 @@ module vision(
     // Initialize Registers
     initial
     begin
+        y_vel <= 0;
+        preY <= 0;
         reset_cam <= 1;
         pwdn_cam <= 0;
         x_pos <= 0;
@@ -110,6 +90,12 @@ module vision(
     reg [26:0] massX = 0;
     reg [26:0] massY = 0;
 
+    // Velocity Vector Variables
+    reg signed [10:0] preY;
+    wire signed [10:0] s_y_pos;
+
+    assign s_y_pos = y_pos;
+
     // Writing to Memory
     always@(posedge pclk)
     begin
@@ -144,6 +130,10 @@ module vision(
                 started <= 1;
                 wea <= 0;
             end
+
+            // Calculate Y Velocity
+            preY <= s_y_pos;
+            y_vel <= s_y_pos - preY;
 
             // Center of Mass Calculations
             x_pos <= numPixels ? massX / numPixels : x_pos;

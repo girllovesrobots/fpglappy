@@ -212,6 +212,7 @@ module fpglappy(
     wire [9:0] player_location [2:0];
     reg [19:0] next_pixel;
     wire done_cam_config;
+    wire signed [10:0] signed_y_vel;
     
     assign player_x = player_location[0];
     assign player_y = player_location[1];
@@ -236,7 +237,8 @@ module fpglappy(
         .wea(wea),
         .done_cam_config(done_cam_config),
         .button_input(BTNL),
-        .sel(BTNR)
+        .sel(BTNR),
+        .y_vel(signed_y_vel)
     );
 
     // BRAM
