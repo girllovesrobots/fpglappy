@@ -223,7 +223,7 @@ endmodule
 module physics(input clock, updatepos, reset_physics,
                input sixty_hz, frameupdate, up,
                input [9:0] player_x, player_y,
-               input [10:0] signed_y_vel,
+               input signed [10:0] signed_y_vel,
                input [7:0] velocity_thresh,
                output reg jump, prev_enable, [19:0] diff,
                output reg [9:0] bird_x, bird_y, prev_player_locx, prev_player_locy
@@ -260,7 +260,7 @@ module physics(input clock, updatepos, reset_physics,
                 bird_y<=250;
             end
             else begin
-            jump <= (up || (signed_y_vel<4))?  1:0;
+            jump <= (up || (signed_y_vel<-8))?  1:0;
                 if (prev_enable ==0) begin
                     bird_y <= 250;
                     if (jump) prev_enable <= 1;

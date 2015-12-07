@@ -163,8 +163,8 @@ module fpglappy(
     //submodules --not tested                     
     physics phys(.clock(clock_25mhz), .updatepos(updatepos), .reset_physics(reset_physics), .up(up),
                  .sixty_hz(sixty_hz), .player_x(player_x), .player_y(player_y), .frameupdate(frameupdate),
-                 .jump(jump), .bird_x(bird_x), .bird_y(bird_y), .prev_enable(prev_enable),
-                 .prev_player_locx(prev_player_locx), .prev_player_locy(prev_player_locy),
+                 .jump(jump), .bird_x(bird_x), .bird_y(bird_y), .prev_enable(prev_enable), 
+                 .prev_player_locx(prev_player_locx), .prev_player_locy(prev_player_locy), .signed_y_vel(signed_y_vel),
                  .velocity_thresh(SW[7:0]));
 
    
