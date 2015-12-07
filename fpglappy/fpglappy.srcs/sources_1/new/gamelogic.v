@@ -107,7 +107,7 @@ module collision_detection(input clock, updatepos, reset_collision,
                            input [9:0] bird_x, bird_y, obs1en, obs2en, obs3en,
                            input [9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y, 
                            output reg collision, pass);
-        parameter BIRDSIZE = 64, OBSW=64, OBSH=128;
+        parameter BIRDSIZE = 64, OBSW=64, OBSH=160;
         always @(posedge clock) begin
             if (reset_collision) collision <=0;
             else begin
@@ -179,14 +179,14 @@ module gamestate(input clock, start, reset, jump, collision, expired, one_hz,
                         end
                     end
                     PLAY: begin //normal state of game
-                        if (collision) begin
+                        /*if (collision) begin
                             state <= LOSE;
                             updatepos <=0;
                             hs_enable <=1;
                             sound_collide <=1;
                             start_timer <=1;
                         end
-                        else if (start) begin
+                        else*/ if (start) begin
                             state <= PAUSE;
                             updatepos <=0;
                             pause <=1; //set pause bit to 1
@@ -224,6 +224,7 @@ module physics(input clock, updatepos, reset_physics,
                input sixty_hz, frameupdate, up,
                input [9:0] player_x, player_y,
                input [10:0] signed_y_vel,
+               input [7:0] velocity_thresh,
                output reg jump, prev_enable, [19:0] diff,
                output reg [9:0] bird_x, bird_y, prev_player_locx, prev_player_locy
                );
@@ -249,13 +250,14 @@ module physics(input clock, updatepos, reset_physics,
 	initial prev_enable =0;
 	
         always @(posedge clock) begin
-        //jump <= up;
+        jump <= up;
             if (reset_physics) begin
                 prev_enable <=0;
                 velocity <= 7;
                 bird_y<=250;
             end
             else begin
+                //jump <= (up || signed_y_vel>velocity_thresh)?  1:0;
                 if (prev_enable ==0) begin
                     bird_y <= 250;
                     if (jump) prev_enable <= 1;
@@ -263,8 +265,9 @@ module physics(input clock, updatepos, reset_physics,
                 end
                 else if (updatepos) begin
                 //otherwise compare the two y-coord locations
+                    
                     if (frameupdate) begin
-                        jump <= (up || signed_y_vel>200)?  1:0;
+                        //jump <= (up || signed_y_vel>200)?  1:0;
                         prev_player_locx <= player_x;
                         prev_player_locy <= player_y;
                     end

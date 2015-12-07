@@ -139,8 +139,8 @@ module spriteline(
     parameter highScoreY = 240;
     wire onesDigit = hcount >= highScoreX+7; // Determine wether displaying tens or ones digit
     assign numberX = onesDigit? highScoreX+8 : highScoreX;
-    wire [3:0] tensValue = highScore/10;
-    wire [3:0] onesValue = highScore-tensValue*10;
+    wire [3:0] tensValue = highScore[7:4];//highScore/10;
+    wire [3:0] onesValue = highScore[3:0];//highScore-tensValue*10;
     assign numberToDisp = onesDigit? onesValue : tensValue;
     assign numberY = highScoreY;
     wire [7:0] highScorePixel = (numberPixel==8'hFF)? highScoreBackground : numberPixel;
@@ -181,7 +181,7 @@ endmodule
 
 module obstacle // Obstacle is different than sprite because we define the opening, and every other part is filled in
        #(parameter WIDTH = 64,            // default width: 64 pixels
-                   HEIGHT = 128)           // default height: 128 pixels
+                   HEIGHT = 160)           // default height: 128 pixels
        (input [9:0] x,hcount,
         input [9:0] y,vcount,
         input enable,

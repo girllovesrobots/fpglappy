@@ -135,7 +135,12 @@ module fpglappy(
     wire [6:0] score;
     wire [3:0] state;
     reg frameupdate;
-    initial frameupdate = VSYNC_C;
+    //initial frameupdate = VSYNC_C;
+    
+    always @(*) begin
+        frameupdate <= VSYNC_C;
+    end
+    
     //Submodules --tested
     onehzstart onehzs(.clock(clock_25mhz), .one_hz_enable(one_hz));
     sixtyhzstart sixtyhzs(.clock(clock_25mhz), .sixty_hz_enable(sixty_hz));
@@ -159,7 +164,8 @@ module fpglappy(
     physics phys(.clock(clock_25mhz), .updatepos(updatepos), .reset_physics(reset_physics), .up(up),
                  .sixty_hz(sixty_hz), .player_x(player_x), .player_y(player_y), .frameupdate(frameupdate),
                  .jump(jump), .bird_x(bird_x), .bird_y(bird_y), .prev_enable(prev_enable),
-                 .prev_player_locx(prev_player_locx), .prev_player_locy(prev_player_locy));
+                 .prev_player_locx(prev_player_locx), .prev_player_locy(prev_player_locy),
+                 .velocity_thresh(SW[7:0]));
 
    
     obstacle_gen og(.clock(vsync), .randbit(randbit), .updatepos(updatepos),
@@ -291,7 +297,7 @@ module fpglappy(
         .at_display_area(at_display_area),
         .faceXCenter(player_x), .faceYCenter(player_y),
         .facePixel(doutb), .pixelAddr(faceSpriteAddr),
-        .pause(pause),.startScreen(startScreen),
+        .pause(pause),.startScreen(home_enable),
         .highScoreScreen(highScoreScreen),.highScore({3'b000,highScore}),
         .VGA_RGB({VGA_R_GAME,VGA_G_GAME,VGA_B_GAME}));
 
