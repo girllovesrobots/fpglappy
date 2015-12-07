@@ -34,8 +34,8 @@ endmodule
 //////////////////////////////////////////////////////////////////////////////////
 // Obstacle Generator module: generates location of the obstacles + scrolls obstacle
 //////////////////////////////////////////////////////////////////////////////////
-module obstacle_gen(input clock, updatepos, vsync, [3:0] randbit,
-                    output obs1en, obs2en, obs3en, reset_physics,
+module obstacle_gen(input clock, updatepos, vsync, [3:0] randbit, reset_physics,
+                    output obs1en, obs2en, obs3en,
                     output reg[9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y);
         reg obs1, obs2, obs3;
         assign obs1en = obs1;
@@ -55,31 +55,40 @@ module obstacle_gen(input clock, updatepos, vsync, [3:0] randbit,
                 obs2 <=0;
                 obs3 <=0;
            end
-           if (vsync && updatepos) begin
-                pixelscan <= (pixelscan<78401)? pixelscan+1 : 0; //restart pixelscan counter after 650
+           if (updatepos) begin
+                pixelscan <= (pixelscan<784)? pixelscan+1 : 0; //restart pixelscan counter after 650
                 if (pixelscan==1 && !obs1) begin
                     obs1 <= 1;
                     obs1x <=784;
                 end
-                else if (pixelscan==40000 && !obs2) begin
+                else if (pixelscan==260 && !obs2) begin
                     obs2 <=1;
                     obs2x <= 784;
                 end
-                else if (pixelscan==78400 && !obs3) begin
+                else if (pixelscan==522 && !obs3) begin
                     obs3 <=1;
                     obs3x <= 784;
                 end
                 if (obs1) begin
                     obs1x <= obs1x-1;
-                    if (obs1x<36) obs1<= 0;
+                    if (obs1x<36) begin
+                        obs1x<= 784;
+                        obs1y <= 200+(randbit*5);
+                    end
                 end
                 if (obs2) begin
                     obs2x <= obs2x-1;
-                    if (obs2x<35) obs2<= 0;
+                    if (obs2x<35) begin
+                        obs2y <= 417-(randbit*7);
+                        obs2x<= 784;
+                    end
                 end
                 if (obs3) begin
                     obs3x <= obs3x-1;
-                    if (obs2x<35) obs2<= 0;
+                    if (obs3x<35) begin
+                        obs3x<= 784;
+                        obs3y <= 50+(randbit*3);
+                    end
                 end
            end
            if (!obs1) obs1y <= 200+(randbit*5);
@@ -91,23 +100,26 @@ endmodule
 //////////////////////////////////////////////////////////////////////////////////
 // Collision Detection module: detects if a collision has occured
 //////////////////////////////////////////////////////////////////////////////////
-module collision_detection(input clock, updatepos,
-                           input [9:0] bird_x, bird_y,
+module collision_detection(input clock, updatepos, reset_collision,
+                           input [9:0] bird_x, bird_y, obs1en, obs2en, obs3en,
                            input [9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y, 
                            output reg collision, pass);
         parameter BIRDSIZE = 64, OBSW=64, OBSH=128;
         always @(posedge clock) begin
-            if (updatepos) begin
-                collision <= (((bird_y+BIRDSIZE >= 505) || (bird_y<=36))
-                || ((((bird_x+BIRDSIZE)>obs1x) && (bird_x<(obs1x+OBSW)))
-                &&((bird_y+BIRDSIZE<obs1y)||(bird_y>(obs1y+OBSH))))
-                || ((((bird_x+BIRDSIZE)>obs2x) && (bird_x<(obs2x+OBSW)))
-                &&((bird_y+BIRDSIZE<obs2y)||(bird_y>(obs2y+OBSH))))
-                || ((((bird_x+BIRDSIZE)>obs3x) && (bird_x<(obs3x+OBSW)))
-                &&((bird_y+BIRDSIZE<obs3y)||(bird_y>(obs3y+OBSH))))
-                )? 1:0;
-            
-                pass <= (((bird_x>(obs1x+OBSW+1))||(bird_x>(obs2x+OBSW+1))||(bird_x>(obs3x+OBSW+1))) && !collision) ? 1:0;
+            if (reset_collision) collision <=0;
+            else begin
+                if (updatepos) begin
+                    collision <= (((bird_y+BIRDSIZE >= 505) || (bird_y<=36))
+                    || obs1en&&((((bird_x+BIRDSIZE)>obs1x) && (bird_x<(obs1x+OBSW)))
+                    &&((bird_y+BIRDSIZE<obs1y)||(bird_y>(obs1y+OBSH))))
+                    || obs2en&&((((bird_x+BIRDSIZE)>obs2x) && (bird_x<(obs2x+OBSW)))
+                    &&((bird_y+BIRDSIZE<obs2y)||(bird_y>(obs2y+OBSH))))
+                    || obs3en&&((((bird_x+BIRDSIZE)>obs3x) && (bird_x<(obs3x+OBSW)))
+                    &&((bird_y+BIRDSIZE<obs3y)||(bird_y>(obs3y+OBSH))))
+                    )? 1:0;
+                
+                    pass <= (((bird_x>(obs1x+OBSW+1))||(bird_x>(obs2x+OBSW+1))||(bird_x>(obs3x+OBSW+1))) && !collision) ? 1:0;
+                end
             end
         end
 endmodule
@@ -193,6 +205,7 @@ module gamestate(input clock, start, reset, jump, collision, expired, one_hz,
                             updatepos <=0;
                         end
                     end
+                    default: state <= START;
                 endcase
                 if (start_timer) start_timer <= 0;
                 sound_jump <= jump? 1:0;
@@ -222,7 +235,7 @@ module physics(input clock, updatepos, reset_physics,
 	initial prev_enable =0;
         always @(posedge clock) begin
         //determine jump by if player location has changed by a +120;
-        jump <= ((prev_player_locy!=0&&prev_player_locx!=0&&player_x!=0&&player_y!=0)&&(prev_player_locy+120<=player_y))?  1: 0;
+        jump <= ((prev_player_locy!=0&&prev_player_locx!=0&&player_x!=0&&player_y!=0)&&(prev_player_locy+40<=player_y))?  1: 0;
         //jump <= up;
             if (reset_physics) begin
                 prev_enable <=0;
@@ -318,22 +331,6 @@ module onehzstart(input clock,
         else if (counter > 25_000_000) counter <= 0;
         
         one_hz_enable <= (counter == 25_000_000)? 1: 0;
-    end 
-endmodule
-
-//////////////////////////////////////////////////////////////////////////////////
-// thirtyhzstart module - Asserts 60Hz cycle (asserts 60/second)
-// used for physics smoothing of movement
-//////////////////////////////////////////////////////////////////////////////////
-module thirtyhzstart(input clock, 
-              output reg thirty_hz_enable
-              );
-    reg [31:0] counter;
-    initial counter = 0;
-    always @(posedge clock)  begin
-        if (counter < 833_333) counter <= counter + 1;
-        else if (counter > 833_332) counter <= 0;
-        thirty_hz_enable <= (counter == 833_332)? 1: 0;
     end 
 endmodule
 

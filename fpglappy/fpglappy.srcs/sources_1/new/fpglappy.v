@@ -64,7 +64,7 @@ module fpglappy(
     output RESET_C,
     output SIOC_C,
     input[7:0] JA,
-    input [7:0] JD,
+    output [7:0] JD,
     // VISION STUFF --------------------------------------------
     output VGA_HS,
     output VGA_VS,
@@ -90,6 +90,7 @@ module fpglappy(
 // Game Logic Specific wires, regs, and submodule calls
 //////////////////////////////////////////////////////////////////////////////////
     //debounce button and switch inputs
+    wire hsync, vsync, at_display_area;
     // BTNC is start
     wire start; //Assert = start game, deassert = pause
        debounce db1(.reset(0),.clock(clock_25mhz),.noisy(BTNC),.clean(start));
@@ -119,18 +120,17 @@ module fpglappy(
     wire collision, jump, pass, prev_enable;
     wire hs_enable, sound_background, sound_collide, sound_jump;
     wire showbit, pause, updatepos;
-    wire one_hz, sixty_hz, thirty_hz, start_timer, expired;
+    wire one_hz, sixty_hz, start_timer, expired;
     wire [3:0] countdown, randbit;
     wire [6:0] score;
     wire [3:0] state;
     //Submodules --tested
     onehzstart onehzs(.clock(clock_25mhz), .one_hz_enable(one_hz));
-    thirtyhzstart thirtyhzs(.clock(clock_25mhz), .thirty_hz_enable(thirty_hz));
     sixtyhzstart sixtyhzs(.clock(clock_25mhz), .sixty_hz_enable(sixty_hz));
 
     timer timer1(.clock(clock_25mhz), .start_timer(start_timer), .one_hz(one_hz), 
                  .expired(expired), .countdown(countdown));
-    collision_detection cd(.clock(clock_25mhz), .updatepos(updatepos),//.obs1en(obs1en), .obs2en(obs2en), .obs3en(obs3en),
+    collision_detection cd(.clock(clock_25mhz), .updatepos(updatepos), .obs1en(obs1en), .obs2en(obs2en), .obs3en(obs3en),
                            .bird_x(bird_x), .bird_y(bird_y),
                            .obs1x(obs1x), .obs1y(obs1y), .obs2x(obs2x), .obs2y(obs2y), .obs3x(obs3x), .obs3y(obs3y),
                            .collision(collision), .pass(pass));
@@ -149,7 +149,7 @@ module fpglappy(
                  .state(state),
                  .sound_collide(sound_collide), .sound_jump(sound_jump), .sound_background(sound_background));
     
-    obstacle_gen og(.clock(clock_25mhz), .randbit(randbit), .updatepos(updatepos), .vsync(vsync),
+    obstacle_gen og(.clock(vsync), .randbit(randbit), .updatepos(updatepos),
                  .obs1en(obs1en), .obs2en(obs2en), .obs3en(obs3en), .reset_physics(reset_physics),
                  .obs1x(obs1x), .obs1y(obs1y), .obs2x(obs2x), .obs2y(obs2y), .obs3x(obs3x), .obs3y(obs3y));
     
@@ -161,7 +161,7 @@ module fpglappy(
     assign LED[14] = jump;
     assign LED[13] = up;
     assign LED[12] = updatepos;
-    assign JD[0] = thirty_hz;
+    assign JD[1] = vsync;
     assign LED[10] = state[3];
     assign LED[9] = state[2];
     assign LED[8] = state[1];
@@ -262,7 +262,7 @@ module fpglappy(
     // sample Verilog to generate color bars
     wire [9:0] hcount;
     wire [9:0] vcount;
-    wire hsync, vsync, at_display_area;
+
     vga vga1(.vga_clock(clock_25mhz),.hcount(hcount),.vcount(vcount),
           .hsync(hsync),.vsync(vsync),.at_display_area(at_display_area));
     
