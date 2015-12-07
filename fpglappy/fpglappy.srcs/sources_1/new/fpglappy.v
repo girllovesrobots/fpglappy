@@ -111,6 +111,16 @@ module fpglappy(
        debounce dbo4(.reset(0),.clock(clock_25mhz),.noisy(SW[7]),.clean(pause));
     wire showCam;
        debounce dbo5(.reset(0),.clock(clock_25mhz),.noisy(SW[8]),.clean(showCam));
+    wire startScreen;
+       debounce dbo6(.reset(0),.clock(clock_25mhz),.noisy(SW[9]),.clean(startScreen));
+    wire highScoreScreen;
+       debounce dbo7(.reset(0),.clock(clock_25mhz),.noisy(SW[10]),.clean(highScoreScreen));
+    wire [4:0] highScore;// = SW[15:11];
+        debounce db8(.reset(0),.clock(clock_25mhz),.noisy(SW[11]),.clean(highScore[0]));
+        debounce db81(.reset(0),.clock(clock_25mhz),.noisy(SW[12]),.clean(highScore[1]));
+        debounce db82(.reset(0),.clock(clock_25mhz),.noisy(SW[13]),.clean(highScore[2]));
+        debounce db83(.reset(0),.clock(clock_25mhz),.noisy(SW[14]),.clean(highScore[3]));
+        debounce db84(.reset(0),.clock(clock_25mhz),.noisy(SW[14]),.clean(highScore[4]));
 
     //Vision tracking player location 
     wire [9:0] player_x, player_y;
@@ -148,10 +158,10 @@ module fpglappy(
                  .hs_enable(hs_enable), .score(score),
                  .sound_collide(sound_collide), .sound_jump(sound_jump), .sound_background(sound_background));
     
-    obstacle_gen og(.clock(clock_25mhz), .randbit(randbit),
+    obstacle_gen og(.clock(clock_25mhz),// .randbit(randbit),
                  .obs1x(obs1x), .obs1y(obs1y), .obs2x(obs2x), .obs2y(obs2y), .obs3x(obs3x), .obs3y(obs3y));
     
-    randombit rb(.clock(clock_25mhz), .randbit(randbit));
+    //randombit rb(.clock(clock_25mhz), .randbit(randbit));
 
     assign LED[15] = sound_collide;
     assign LED[14] = collision;
@@ -264,7 +274,8 @@ module fpglappy(
         .at_display_area(at_display_area),
         .faceXCenter(player_x), .faceYCenter(player_y),
         .facePixel(doutb), .pixelAddr(faceSpriteAddr),
-        .pause(pause),
+        .pause(pause),.startScreen(startScreen),
+        .highScoreScreen(highScoreScreen),.highScore({3'b000,highScore}),
         .VGA_RGB({VGA_R_GAME,VGA_G_GAME,VGA_B_GAME}));
 
     always @(posedge clock_25mhz) begin

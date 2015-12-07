@@ -71,7 +71,7 @@ module spriteline(
                             ((startScreen)? 
                                 {startScreenPixel[7:5],1'b0,startScreenPixel[4:2],1'b0,startScreenPixel[1:0],2'b00} // If start screen
                                 :(highScoreScreen)? // Else not start screen
-                                     highScorePixel // If high score screen
+                                    {highScorePixel[7:5],1'b0,highScorePixel[4:2],1'b0,highScorePixel[1:0],2'b00} // If high score screen
                                      :pause_out)    // Else not start screen
                             :0;
     /*
@@ -81,8 +81,11 @@ module spriteline(
     */
     
     // Memory for startup screen
+    
     wire[7:0] startScreenPixel;
-    wire[12:0] startScreenAddress = (hcount-144)>>4 + (vcount-35)<<3;
+    wire[9:0] startScreenX = hcount-144;
+    wire[8:0] startScreenY = vcount-35;
+    wire[12:0] startScreenAddress = {startScreenY[8:3],startScreenX[9:3]};//(hcount-144)>>3 + (vcount-35)<<4;
     start_screen start_screen(.a(startScreenAddress),.spo(startScreenPixel));
     
     assign pipeMemAddress = 
@@ -123,12 +126,15 @@ module spriteline(
     wire [3:0] numberToDisp;
     wire [9:0] numberX;
     wire [9:0] numberY;
-    wire [11:0] numberAddress = (numberToDisp<<3) + (hcount-numberX) + (vcount-numberY)<<7;
+    wire [2:0] offsetX = hcount-numberX;
+    wire [4:0] offsetY = vcount-numberY;
+    wire [11:0] numberAddress = {offsetY,numberToDisp,offsetX};//(numberToDisp<<3) + (hcount-numberX) + (vcount-numberY)<<7;
+    wire [7:0] numberOut;
     number_map number_map(.a(numberAddress),.spo(numberOut));
-    wire[7:0] numberPixel = ((hcount-numberX) < 8)? numberOut : 8'hFF;
+    wire[7:0] numberPixel = ((hcount-numberX) < 8 && (vcount-numberY) < 10)? numberOut : 8'hFF;
     
     // Display the highScore value as a two-digit number
-    wire [7:0] highScoreBackground = 8'b000_010_10;
+    wire [7:0] highScoreBackground = 8'b000_100_10;
     parameter highScoreX = 320;
     parameter highScoreY = 240;
     wire onesDigit = hcount >= highScoreX+7; // Determine wether displaying tens or ones digit
