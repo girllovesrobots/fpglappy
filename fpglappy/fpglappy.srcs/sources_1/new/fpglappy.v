@@ -93,6 +93,7 @@ module fpglappy(
     wire start; //Assert = start game, deassert = pause
        debounce db1(.reset(0),.clock(clock_25mhz),.noisy(BTNC),.clean(start));
     wire reset; //Assert = reset the game
+        debounce dbr(.reset(0),.clock(clock_25mhz),.noisy(BTND),.clean(reset));
     wire up; //Used for testing if a jump occurs
        debounce db2(.reset(0),.clock(clock_25mhz),.noisy(BTNU),.clean(up));
     //Game Level
@@ -101,14 +102,8 @@ module fpglappy(
        debounce db71(.reset(0),.clock(clock_25mhz),.noisy(SW[2]),.clean(gamelvl[2]));
        debounce db72(.reset(0),.clock(clock_25mhz),.noisy(SW[1]),.clean(gamelvl[1]));
        debounce db73(.reset(0),.clock(clock_25mhz),.noisy(SW[0]),.clean(gamelvl[0]));
-    wire obs1en;
-       debounce dbo1(.reset(0),.clock(clock_25mhz),.noisy(SW[4]),.clean(obs1en));
-    wire obs2en;
-       debounce dbo2(.reset(0),.clock(clock_25mhz),.noisy(SW[5]),.clean(obs2en));
-    wire obs3en;
-       debounce dbo3(.reset(0),.clock(clock_25mhz),.noisy(SW[6]),.clean(obs3en));
-    wire pause;
-       debounce dbo4(.reset(0),.clock(clock_25mhz),.noisy(SW[7]),.clean(pause));
+    //wire pause;
+    //   debounce dbo4(.reset(0),.clock(clock_25mhz),.noisy(SW[7]),.clean(pause));
     wire showCam;
        debounce dbo5(.reset(0),.clock(clock_25mhz),.noisy(SW[8]),.clean(showCam));
 
@@ -118,47 +113,61 @@ module fpglappy(
     wire [9:0] bird_x, bird_y; //Bird has format x-coord, y-coord
     wire [9:0] prev_player_locx, prev_players_locy; //Keeps track of previous player location
     wire [9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y; //x and y coords for the obstacles
-
-    wire collision, jump;
+    wire obs1en, obs2en, obs3en;
+    wire reset_physics, reset_score;
+    wire collision, jump, pass, prev_enable;
     wire hs_enable, sound_background, sound_collide, sound_jump;
-    wire showbit, pause;
-    wire one_hz, sixty_hz, start_timer, expired;
-    wire [3:0] countdown, score, randbit;
-   
+    wire showbit, pause, updatepos;
+    wire one_hz, sixty_hz, thirty_hz, start_timer, expired;
+    wire [3:0] countdown, randbit;
+    wire [6:0] score;
+    wire [1:0] state;
     //Submodules --tested
     onehzstart onehzs(.clock(clock_25mhz), .one_hz_enable(one_hz));
-    //fivehzstart fivehzs(.clock(clock_25mhz), .five_hz_enable(five_hz));
+    thirtyhzstart thirtyhzs(.clock(clock_25mhz), .thirty_hz_enable(thirty_hz));
     sixtyhzstart sixtyhzs(.clock(clock_25mhz), .sixty_hz_enable(sixty_hz));
 
     timer timer1(.clock(clock_25mhz), .start_timer(start_timer), .one_hz(one_hz), 
                  .expired(expired), .countdown(countdown));
-    collision_detection cd(.clock(clock_25mhz), .obs1en(obs1en), .obs2en(obs2en), .obs3en(obs3en),
+    collision_detection cd(.clock(clock_25mhz), .updatepos(updatepos),//.obs1en(obs1en), .obs2en(obs2en), .obs3en(obs3en),
                            .bird_x(bird_x), .bird_y(bird_y),
                            .obs1x(obs1x), .obs1y(obs1y), .obs2x(obs2x), .obs2y(obs2y), .obs3x(obs3x), .obs3y(obs3y),
-                           .collision(collision));
+                           .collision(collision), .pass(pass));
                            
     //submodules --not tested                     
-    physics phys(.clock(clock_25mhz), .sixty_hz(sixty_hz), .player_x(player_x), .player_y(player_y),
+    physics phys(.clock(clock_25mhz), .updatepos(updatepos), .reset_physics(reset_physics),
+                 .sixty_hz(sixty_hz), .player_x(player_x), .player_y(player_y),
                  .up(up), //button for testing
-                 .jump(jump), .bird_x(bird_x), .bird_y(bird_y), 
+                 .jump(jump), .bird_x(bird_x), .bird_y(bird_y), .prev_enable(prev_enable),
                  .prev_player_locx(prev_player_locx), .prev_player_locy(prev_player_locy));
     
-    gamestate gs(.clock(clock_25mhz), .start(start), .jump(jump), .collision(collision), 
+    gamestate gs(.clock(clock_25mhz), .start(start), .reset(reset), .jump(jump), .collision(collision), 
                  .expired(expired), .one_hz(one_hz), .start_timer(start_timer),
-                 .hs_enable(hs_enable), .score(score),
+                 .hs_enable(hs_enable), .home_enable(home_enable), .updatepos(updatepos), .pause(pause),
+                 .reset_physics(reset_physics), .reset_score(reset_score),
+                 .state(state),
                  .sound_collide(sound_collide), .sound_jump(sound_jump), .sound_background(sound_background));
     
-    obstacle_gen og(.clock(clock_25mhz), .randbit(randbit),
+    obstacle_gen og(.clock(clock_25mhz), .randbit(randbit), .updatepos(updatepos), .thirty_hz(thirty_hz),
+                 .obs1en(obs1en), .obs2en(obs2en), .obs3en(obs3en), .prev_enable(prev_enable), .reset_physics(reset_physics),
                  .obs1x(obs1x), .obs1y(obs1y), .obs2x(obs2x), .obs2y(obs2y), .obs3x(obs3x), .obs3y(obs3y));
+    
+    highscore hs(.clock(clock_25mhz), .reset_score(reset_score), .pass(pass), .score(score));
     
     randombit rb(.clock(clock_25mhz), .randbit(randbit));
 
-    assign LED[15] = sound_collide;
-    assign LED[14] = collision;
-    assign LED[13] = sound_jump;
-    assign LED[12] = jump;
-    assign LED[11] = up;
-    //assign data = {score, 24'h012345, countdown};
+    assign LED[15] = collision;
+    assign LED[14] = jump;
+    assign LED[13] = up;
+    assign LED[12] = updatepos;
+    assign LED[11] = thirty_hz;
+    assign LED[10] = pause;
+    assign LED[8] = state[1];
+    assign LED[7] = state[0];
+    assign LED[6] = obs1en;
+    assign LED[5] = obs2en;
+    assign LED[4] = obs3en;
+    //assign data = {24'h012345, 6'b0, state};
     //////////////////////////////////////////////////////////////////////////////////
 
 
@@ -222,8 +231,8 @@ module fpglappy(
         .dina(dina),
         .wea(wea),
         .done_cam_config(done_cam_config),
-        .button_input(BTNC),
-        .sel(BTNU)
+        .button_input(BTNL),
+        .sel(BTNR)
     );
 
     // BRAM
@@ -286,7 +295,7 @@ endmodule
 //////////////////////////////////////////////////////////////////////////////////
 // debounce module: debounces switch and button inputs
 //////////////////////////////////////////////////////////////////////////////////
-module debounce #(parameter DELAY=270000)   // .01 sec with a 27Mhz clock
+module debounce #(parameter DELAY=250000)   // .01 sec with a 25Mhz clock
 	        (input reset, clock, noisy,
 	         output reg clean);
 
