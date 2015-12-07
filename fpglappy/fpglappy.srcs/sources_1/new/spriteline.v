@@ -31,7 +31,8 @@ module spriteline(
     input at_display_area,
     input [9:0] faceXCenter,faceYCenter,
     input [7:0] facePixel,
-    input pause,
+    input pause,startScreen,highScoreScreen,
+    input [7:0] highScore,
     output [18:0] pixelAddr,
     output [11:0] VGA_RGB,
     output reg[7:0] dout
@@ -66,14 +67,23 @@ module spriteline(
     
     wire[3:0] newRed = {birdOut[7:6],1'b11};
     wire[11:0] pause_out = (pause)? {newRed,2'b00,birdOut[4:3],2'b00,birdOut[1:0]}:birdOut; // Tint red in case of pause
-    assign VGA_RGB = (at_display_area)? pause_out : 0;
+    assign VGA_RGB = (at_display_area)?
+                            ((startScreen)? 
+                                {startScreenPixel[7:5],1'b0,startScreenPixel[4:2],1'b0,startScreenPixel[1:0],2'b00} // If start screen
+                                :(highScoreScreen)? // Else not start screen
+                                     highScorePixel // If high score screen
+                                     :pause_out)    // Else not start screen
+                            :0;
     /*
     assign VGA_R = at_display_area ? {4{hcount[7]}} : 0;
     assign VGA_G = at_display_area ? {4{hcount[6]}} : 0;
     assign VGA_B = at_display_area ? {4{hcount[5]}} : 0;
     */
     
-
+    // Memory for startup screen
+    wire[7:0] startScreenPixel;
+    wire[12:0] startScreenAddress = (hcount-144)>>4 + (vcount-35)<<3;
+    start_screen start_screen(.a(startScreenAddress),.spo(startScreenPixel));
     
     assign pipeMemAddress = 
         (pipe1Addr > 0)? pipe1Addr :
@@ -108,6 +118,26 @@ module spriteline(
             backgroundPos <= backgroundPos + 1;
         end
     end
+    
+    // If a module wants to display a number, it puts in a numberToDis as well as its X and Y coords
+    wire [3:0] numberToDisp;
+    wire [9:0] numberX;
+    wire [9:0] numberY;
+    wire [11:0] numberAddress = (numberToDisp<<3) + (hcount-numberX) + (vcount-numberY)<<7;
+    number_map number_map(.a(numberAddress),.spo(numberOut));
+    wire[7:0] numberPixel = ((hcount-numberX) < 8)? numberOut : 8'hFF;
+    
+    // Display the highScore value as a two-digit number
+    wire [7:0] highScoreBackground = 8'b000_010_10;
+    parameter highScoreX = 320;
+    parameter highScoreY = 240;
+    wire onesDigit = hcount >= highScoreX+7; // Determine wether displaying tens or ones digit
+    assign numberX = onesDigit? highScoreX+8 : highScoreX;
+    wire [3:0] tensValue = highScore/10;
+    wire [3:0] onesValue = highScore-tensValue*10;
+    assign numberToDisp = onesDigit? onesValue : tensValue;
+    assign numberY = highScoreY;
+    wire [7:0] highScorePixel = (numberPixel==8'hFF)? highScoreBackground : numberPixel;
     
 endmodule
 
@@ -159,8 +189,7 @@ module obstacle // Obstacle is different than sprite because we define the openi
         
         //yPos will become row index of picture, so mirror for top pipe
         assign yPos =
-                (vcount < y)?    // If above vs. if below
-                //y-vcount-1 : vcount-(y+HEIGHT)-1;
+                (vcount < y)?    // If above vs. if below               //y-vcount-1 : vcount-(y+HEIGHT)-1;
                     ((vcount+31 < y)? // If below edge of sprite, stretch out last row
                         31:y-vcount-1):
                     ((vcount > (y+HEIGHT+31))? // If below edge of spritre, stretch out last row
