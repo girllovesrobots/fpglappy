@@ -34,8 +34,8 @@ endmodule
 //////////////////////////////////////////////////////////////////////////////////
 // Obstacle Generator module: generates location of the obstacles + scrolls obstacle
 //////////////////////////////////////////////////////////////////////////////////
-module obstacle_gen(input clock, updatepos, thirty_hz, [3:0] randbit,
-                    output obs1en, obs2en, obs3en, prev_enable, reset_physics,
+module obstacle_gen(input clock, updatepos, vsync, [3:0] randbit,
+                    output obs1en, obs2en, obs3en, reset_physics,
                     output reg[9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y);
         reg obs1, obs2, obs3;
         assign obs1en = obs1;
@@ -44,7 +44,7 @@ module obstacle_gen(input clock, updatepos, thirty_hz, [3:0] randbit,
         initial obs1 = 0;
         initial obs2 = 0;
         initial obs3 = 0;
-        reg [9:0] pixelscan;
+        reg [19:0] pixelscan;
         initial pixelscan = 0;
         
         always @(posedge clock) begin  //144,784 (x) 35,515 (y)
@@ -55,17 +55,17 @@ module obstacle_gen(input clock, updatepos, thirty_hz, [3:0] randbit,
                 obs2 <=0;
                 obs3 <=0;
            end
-           if (thirty_hz && updatepos) begin
-                pixelscan <= (pixelscan<785)? pixelscan+1 : 0; //restart pixelscan counter after 650
-                if (pixelscan==262 && !obs1) begin
+           if (vsync && updatepos) begin
+                pixelscan <= (pixelscan<78401)? pixelscan+1 : 0; //restart pixelscan counter after 650
+                if (pixelscan==1 && !obs1) begin
                     obs1 <= 1;
                     obs1x <=784;
                 end
-                else if (pixelscan==523 && !obs2) begin
+                else if (pixelscan==40000 && !obs2) begin
                     obs2 <=1;
                     obs2x <= 784;
                 end
-                else if (pixelscan==784 && !obs3) begin
+                else if (pixelscan==78400 && !obs3) begin
                     obs3 <=1;
                     obs3x <= 784;
                 end
@@ -118,11 +118,11 @@ endmodule
 module gamestate(input clock, start, reset, jump, collision, expired, one_hz,
                  output reg hs_enable, home_enable, updatepos, pause, reset_physics, reset_score,
                  output reg sound_collide, sound_jump, sound_background, start_timer,
-                 output reg [1:0] state
+                 output reg [3:0] state
                  );
     
-        parameter START = 3'b00, PLAY = 3'b01, PAUSE = 3'b10, LOSE = 3'b11;
-        reg [1:0] state;
+        parameter START = 4'b0001, PLAY = 4'b0010, PAUSE = 4'b0100, LOSE = 4'b1000;
+        reg [3:0] state;
         
         initial state = START;
         initial start_timer = 0;
@@ -222,8 +222,8 @@ module physics(input clock, updatepos, reset_physics,
 	initial prev_enable =0;
         always @(posedge clock) begin
         //determine jump by if player location has changed by a +120;
-        //jump <= ((prev_player_locy!=0&&prev_player_locx!=0&&player_x!=0&&player_y!=0)&&(prev_player_locy+120<=player_y))?  1: 0;
-        jump <= up;
+        jump <= ((prev_player_locy!=0&&prev_player_locx!=0&&player_x!=0&&player_y!=0)&&(prev_player_locy+120<=player_y))?  1: 0;
+        //jump <= up;
             if (reset_physics) begin
                 prev_enable <=0;
                 velocity <= 7;

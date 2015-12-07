@@ -64,6 +64,7 @@ module fpglappy(
     output RESET_C,
     output SIOC_C,
     input[7:0] JA,
+    input [7:0] JD,
     // VISION STUFF --------------------------------------------
     output VGA_HS,
     output VGA_VS,
@@ -121,7 +122,7 @@ module fpglappy(
     wire one_hz, sixty_hz, thirty_hz, start_timer, expired;
     wire [3:0] countdown, randbit;
     wire [6:0] score;
-    wire [1:0] state;
+    wire [3:0] state;
     //Submodules --tested
     onehzstart onehzs(.clock(clock_25mhz), .one_hz_enable(one_hz));
     thirtyhzstart thirtyhzs(.clock(clock_25mhz), .thirty_hz_enable(thirty_hz));
@@ -148,8 +149,8 @@ module fpglappy(
                  .state(state),
                  .sound_collide(sound_collide), .sound_jump(sound_jump), .sound_background(sound_background));
     
-    obstacle_gen og(.clock(clock_25mhz), .randbit(randbit), .updatepos(updatepos), .thirty_hz(thirty_hz),
-                 .obs1en(obs1en), .obs2en(obs2en), .obs3en(obs3en), .prev_enable(prev_enable), .reset_physics(reset_physics),
+    obstacle_gen og(.clock(clock_25mhz), .randbit(randbit), .updatepos(updatepos), .vsync(vsync),
+                 .obs1en(obs1en), .obs2en(obs2en), .obs3en(obs3en), .reset_physics(reset_physics),
                  .obs1x(obs1x), .obs1y(obs1y), .obs2x(obs2x), .obs2y(obs2y), .obs3x(obs3x), .obs3y(obs3y));
     
     highscore hs(.clock(clock_25mhz), .reset_score(reset_score), .pass(pass), .score(score));
@@ -160,13 +161,15 @@ module fpglappy(
     assign LED[14] = jump;
     assign LED[13] = up;
     assign LED[12] = updatepos;
-    assign LED[11] = thirty_hz;
-    assign LED[10] = pause;
+    assign JD[0] = thirty_hz;
+    assign LED[10] = state[3];
+    assign LED[9] = state[2];
     assign LED[8] = state[1];
     assign LED[7] = state[0];
-    assign LED[6] = obs1en;
-    assign LED[5] = obs2en;
-    assign LED[4] = obs3en;
+    assign LED[4] = obs1en;
+    assign LED[3] = obs2en;
+    assign LED[2] = obs3en;
+    assign LED[1] = reset_physics;
     //assign data = {24'h012345, 6'b0, state};
     //////////////////////////////////////////////////////////////////////////////////
 
