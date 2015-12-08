@@ -18,8 +18,8 @@
 module highscore(input clock, reset_score, pass,
                  output reg [6:0] score
                  );
-       reg [6:0] prevhs;
-       initial prevhs = 0;
+       //reg [6:0] prevhs;
+       //initial prevhs = 0;
        initial score = 0;
        always @(posedge clock) begin
             if (reset_score) begin //game has reset, so score is 0
@@ -34,8 +34,10 @@ endmodule
 //////////////////////////////////////////////////////////////////////////////////
 // Obstacle Generator module: generates location of the obstacles + scrolls obstacle
 //////////////////////////////////////////////////////////////////////////////////
-module obstacle_gen(input clock, updatepos, [3:0] randbit, reset_physics,
+module obstacle_gen(input clock, updatepos, [3:0] randbit,
+                    input reset_score, reset_physics,
                     output obs1en, obs2en, obs3en,
+                    output reg [6:0] score,
                     output reg[9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y);
         reg obs1, obs2, obs3;
         assign obs1en = obs1;
@@ -44,6 +46,7 @@ module obstacle_gen(input clock, updatepos, [3:0] randbit, reset_physics,
         initial obs1 = 0;
         initial obs2 = 0;
         initial obs3 = 0;
+        initial score = 0;
         reg [19:0] pixelscan;
         initial pixelscan = 0;
         
@@ -57,6 +60,7 @@ module obstacle_gen(input clock, updatepos, [3:0] randbit, reset_physics,
                 obs2x <=800;
                 obs3 <=0;
                 obs3x <=800;
+                score <= 0;
            end
            if (updatepos) begin
                 pixelscan <= (pixelscan<784)? pixelscan+1 : pixelscan; //restart pixelscan counter after 650
@@ -78,25 +82,29 @@ module obstacle_gen(input clock, updatepos, [3:0] randbit, reset_physics,
                         obs1x<= 784;
                         obs1y <= (randbit[2]==1'b0)? 200+(randbit*10):300-(randbit*11);
                     end
+                    if (obs1x==135) score <= score + 1;
                 end
                 if (obs2) begin
                     obs2x <= obs2x-1;
                     if (obs2x<35) begin
-                        obs2y <= (randbit[0]==1'b1)? 400-(randbit*7):125+(randbit*2);
+                        obs2y <= (randbit[0]==1'b1)? 300-(randbit*7):125+(randbit*2);
                         obs2x<= 784;
                     end
+                    if (obs2x==135) score <= score + 1;
                 end
                 if (obs3) begin
                     obs3x <= obs3x-1;
                     if (obs3x<35) begin
                         obs3x<= 784;
-                        obs3y <=  (randbit[3]==1'b1)? 300: 50+(randbit*3);
+                        obs3y <=  (randbit[3]==1'b1)? 300-(randbit*4): 50+(randbit*3);
                     end
+                    if (obs3x==135) score <= score + 1;
                 end
            end
            if (!obs1) obs1y <= (randbit[2]==1'b0)? 200+(randbit*10):300-(randbit*11);
-           if (!obs2) obs2y <= (randbit[0]==1'b1)? 400-(randbit*7):125+(randbit*2);
+           if (!obs2) obs2y <= (randbit[0]==1'b1)? 300-(randbit*7):125+(randbit*2);
            if (!obs3) obs3y <= (randbit[3]==1'b1)? 300: 50+(randbit*3);
+           //pass <= (obs1x+64==199)||(obs2x+64==199)||(obs3x+64==199)? 1:0;
         end
 endmodule
 
@@ -106,7 +114,7 @@ endmodule
 module collision_detection(input clock, updatepos, reset_collision,
                            input [9:0] bird_x, bird_y, obs1en, obs2en, obs3en,
                            input [9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y, 
-                           output reg collision, pass);
+                           output reg collision);
         parameter BIRDSIZE = 64, OBSW=64, OBSH=160;
         always @(posedge clock) begin
             if (reset_collision) collision <=0;
@@ -121,7 +129,6 @@ module collision_detection(input clock, updatepos, reset_collision,
                     &&((bird_y<obs3y)||((bird_y+BIRDSIZE)>(obs3y+OBSH))))
                     )? 1:0;
                 
-                    pass <= (((bird_x>(obs1x+OBSW+1))||(bird_x>(obs2x+OBSW+1))||(bird_x>(obs3x+OBSW+1))) && !collision) ? 1:0;
                 end
             end
         end
@@ -212,6 +219,7 @@ module gamestate(input clock, start, reset, jump, collision, expired, one_hz,
                     default: state <= START;
                 endcase
                 if (start_timer) start_timer <= 0;
+                //if (sound_collide) sound_collide <= 0;
                 sound_jump <= (jump)? 1:0;
            end
         end

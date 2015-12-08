@@ -32,11 +32,16 @@ module spriteline(
     input [9:0] faceXCenter,faceYCenter,
     input [7:0] facePixel,
     input pause,startScreen,highScoreScreen,
-    input [7:0] highScore,
+    input [6:0] score,
     output [18:0] pixelAddr,
     output [11:0] VGA_RGB,
     output reg[7:0] dout
     );
+
+    reg [6:0] highScore = 0;
+    always@(posedge vsync) begin
+        if (score >= highScore) highScore <= score;
+    end
 
     // Background
     //wire [11:0] background = {{4{hcount[2]}},{4{hcount[1]}},{4{hcount[0]}}}; //uncomment for stripe background
@@ -139,7 +144,7 @@ module spriteline(
     parameter highScoreY = 240;
     wire onesDigit = hcount >= highScoreX+7; // Determine wether displaying tens or ones digit
     assign numberX = onesDigit? highScoreX+8 : highScoreX;
-    wire [3:0] tensValue = highScore[7:4];//highScore/10;
+    wire [3:0] tensValue = highScore[6:4];//highScore/10;
     wire [3:0] onesValue = highScore[3:0];//highScore-tensValue*10;
     assign numberToDisp = onesDigit? onesValue : tensValue;
     assign numberY = highScoreY;

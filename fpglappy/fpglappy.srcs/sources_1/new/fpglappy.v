@@ -151,7 +151,7 @@ module fpglappy(
     collision_detection cd(.clock(clock_25mhz), .updatepos(updatepos), .obs1en(obs1en), .obs2en(obs2en), .obs3en(obs3en),
                            .bird_x(bird_x), .bird_y(bird_y), .reset_collision(reset_collision),
                            .obs1x(obs1x), .obs1y(obs1y), .obs2x(obs2x), .obs2y(obs2y), .obs3x(obs3x), .obs3y(obs3y),
-                           .collision(collision), .pass(pass));
+                           .collision(collision));
     
     gamestate gs(.clock(clock_25mhz), .start(start), .reset(reset), .jump(jump), .collision(collision), 
                   .expired(expired), .one_hz(one_hz), .start_timer(start_timer), 
@@ -170,9 +170,11 @@ module fpglappy(
    
     obstacle_gen og(.clock(vsync), .randbit(randbit), .updatepos(updatepos),
                  .obs1en(obs1en), .obs2en(obs2en), .obs3en(obs3en), .reset_physics(reset_physics),
-                 .obs1x(obs1x), .obs1y(obs1y), .obs2x(obs2x), .obs2y(obs2y), .obs3x(obs3x), .obs3y(obs3y));
+                 .obs1x(obs1x), .obs1y(obs1y), .obs2x(obs2x), .obs2y(obs2y), .obs3x(obs3x), .obs3y(obs3y),
+                 .score(score)
+                );
     
-    highscore hs(.clock(clock_25mhz), .reset_score(reset_score), .pass(pass), .score(score));
+    //highscore hs(.clock(clock_25mhz), .reset_score(reset_score), .pass(pass), .score(score));
     
     randombit rb(.clock(clock_25mhz), .player_x(player_x), .randbit(randbit));
 
@@ -276,7 +278,7 @@ module fpglappy(
 
     assign web = 0;
     assign dinb = 0;
-    assign data = {signed_y_vel};
+    assign data = {score};
     /* Vision */
 
     //////////////////////////////////////////////////////////////////////////////////
@@ -298,7 +300,7 @@ module fpglappy(
         .faceXCenter(player_x), .faceYCenter(player_y),
         .facePixel(doutb), .pixelAddr(faceSpriteAddr),
         .pause(pause),.startScreen(home_enable),
-        .highScoreScreen(highScoreScreen),.highScore({3'b000,highScore}),
+        .highScoreScreen(hs_enable),.score(score),
         .VGA_RGB({VGA_R_GAME,VGA_G_GAME,VGA_B_GAME}));
 
     always @(posedge clock_25mhz) begin
