@@ -29,9 +29,9 @@ module audio(
     );
     wire[7:0] music_data;
     
+    // Generate 8khz clock for reading samples
     reg[11:0] divideCounter=0;
     reg clk_8khz=0;
-    
     always @(posedge clk) begin
         if (divideCounter < 1563) begin
             divideCounter <= divideCounter+1;
@@ -43,11 +43,19 @@ module audio(
     
     audio_PWM audioPWM(.clk(clk),.reset(0),.music_data(music_data),.PWM_out(PWM_out));
     
+    /////////////////////////////////////////////////////////////////////////////
+    //////////// Crashing Sound /////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////
+    
     wire[11:0] crashAddress;
     wire[3:0] crashAudio;
     soundTimer crashTimer(clk,clk_8khz,crashSound,crashAddress);
     crash_sound crash_sound(.a(crashAddress),.spo(crashAudio));
     wire[3:0] correctedCrashAudio = (crashAudio[3])? + (128-crashAudio[2:0]):(128+crashAudio[2:0]);
+    
+    /////////////////////////////////////////////////////////////////////////////
+    //////////// Jumping Sound //////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////
     
     wire[11:0] jumpAddress;
     wire[3:0] jumpAudio;
@@ -55,8 +63,11 @@ module audio(
     jump_sound jump_sound(.a(jumpAddress),.spo(jumpAudio));
     wire[3:0] correctedJumpAudio = (jumpAudio[3])? + (128-jumpAudio[2:0]):(128+jumpAudio[2:0]);
     
+    // Add outputs together, return value
+    
     wire[4:0] audioSum = correctedCrashAudio+correctedJumpAudio;
     assign music_data = {audioSum,3'b0};
+    
 endmodule
 
 module soundTimer   // Timing for an 8khz sound
@@ -65,8 +76,6 @@ module soundTimer   // Timing for an 8khz sound
     input sampleClock, // Clock for sampling
     input enable,
     output reg [11:0] sampleNumber=0);
-    
-    //sampleNumber = 0;
    
     
     always @(posedge sampleClock) begin
