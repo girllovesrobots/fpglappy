@@ -1,126 +1,15 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Engineer: Wei Low
-// Module Name: gamelogic_tb.v
+// Module Name: gamelogic_tb.
+// Description: Contains testbenches for collision, timer, 
+// 				onehzstart and randombit modules
 
 //////////////////////////////////////////////////////////////////////////////////
 
 module gamelogic_tb;
 
-/* randombit TestBench -- Tested*/
-
-// Inputs
-    reg clock;
-
-// Outputs  
-    wire [3:0] randbit;
-
-    randombit uut(
-        .clock(clock),
-        .randbit(randbit)
-    );
-    
-    always #10 clock = !clock; //change clock every 10 ns
-    
-    initial begin
-        //Initialize Inputs
-        clock = 0;
-        // Wait 100 ns for global reset to finish
-        #100;
-        
-        //Add stimulus here
-
-    end
-
-
-
-/* GameState TestBench --
-
-// Inputs
-    reg clock;
-    reg ignition;
-    reg passdoor;
-    reg driverdoor;
-    reg expired;
-
-// Outputs  
-    wire status;
-    wire siren;
-    wire status_blink;
-    wire [3:0] state;
-
-    fsm uut(
-        .clock(clock),
-        .passdoor(passdoor),
-        .driverdoor(driverdoor),
-        .ignition(ignition),
-        .expired(expired),
-        .status(status),
-        .siren(siren),
-        .status_blink(status_blink),
-        .state(state)
-    );
-    
-    always #10 clock = !clock; //change clock every 100_000 ns
-    
-    initial begin
-        //Initialize Inputs
-        clock = 0;
-        ignition = 0;
-        passdoor= 0;
-        driverdoor=0;
-        expired = 0;
-        
-        // Wait 100 ns for global reset to finish
-        #100;
-            
-        // Add stimulus here
-        //////////////////////////////////////////////
-        //Test ARMED STATE
-        ignition = 0;
-        #20;
-        expired = 1;
-        #20;
-        expired = 0;
-        #20;
-        driverdoor= 1;
-        #20
-        //DTRIGGER
-        ignition = 1;
-        #20;
-        //DISARMED
-        ignition = 0;
-        driverdoor = 1;
-        #20;
-        driverdoor = 0;
-        //ARMDELAY
-        driverdoor = 1;
-        #100;
-        driverdoor = 0;
-        #20;
-        expired = 1;
-        //ARMED
-        #20;
-        expired = 0;
-        passdoor = 1;
-        #20;
-        //PTRIGGER
-        ignition = 0;
-        expired = 1;
-        #30;
-        //SOUNDALARM
-        expired = 0;
-        passdoor = 1;
-        #40;
-        passdoor = 0;
-        driverdoor = 0;
-        #100;
-        expired = 1;
-        /////////////////////////////////////////////
-    end
-*/
 /* Collision TestBench -- Tested
-
 // Inputs
     reg clock;
     reg obs1en;
@@ -136,7 +25,6 @@ module gamelogic_tb;
     reg [9:0] obs3y;
 // Outputs  
     wire collision;
-
     collision_detection uut(
         .clock(clock),
         .obs1en(obs1en),
@@ -192,10 +80,10 @@ module gamelogic_tb;
         bird_x = 163;
         #50
         bird_y = 80;
-
         /////////////////////////////////////////////
         end
 */
+
 /* Timer TestBench -- Tested
 // Inputs
     reg clock;
@@ -204,7 +92,6 @@ module gamelogic_tb;
 // Outputs  
     wire expired;
     wire [2:0] countdown;
-
     timer uut(
         .clock(clock),
         .start_timer(start_timer),
@@ -222,7 +109,6 @@ module gamelogic_tb;
         one_hz = 0;
         // Wait 100 ns for global reset to finish
         #100;
-
         //Add stimulus here
         start_timer = 1;
         #20
@@ -231,12 +117,10 @@ module gamelogic_tb;
 */
 
 /* OneHzStart TestBench -- Tested
-
 // Inputs
     reg clock;
 // Outputs  
     wire one_hz_enable;
-
     onehzstart uut(
         .clock(clock),
         .one_hz_enable(one_hz_enable)
@@ -250,7 +134,33 @@ module gamelogic_tb;
         
         // Wait 100 ns for global reset to finish
         #100;
+    end
+*/
+
+/* randombit TestBench -- Tested -- Not used because using player_loc bits instead
+
+// Inputs
+    reg clock;
+
+// Outputs  
+    wire [3:0] randbit;
+
+    randombit uut(
+        .clock(clock),
+        .randbit(randbit)
+    );
+    
+    always #10 clock = !clock; //change clock every 10 ns
+    
+    initial begin
+        //Initialize Inputs
+        clock = 0;
+        // Wait 100 ns for global reset to finish
+        #100;
+        
+        //Add stimulus here
 
     end
+
 */
 endmodule
