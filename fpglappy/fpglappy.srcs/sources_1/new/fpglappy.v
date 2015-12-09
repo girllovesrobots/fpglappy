@@ -98,12 +98,7 @@ module fpglappy(
         debounce_wrapper dbr(.reset(0),.clock(clock_25mhz),.noisy(BTND),.clean(reset));
     wire up; //Used for testing if a jump occurs
        debounce db2(.reset(0),.clock(clock_25mhz),.noisy(BTNU),.clean(up));
-    //Game Level
-    wire [3:0] gamelvl;
-       debounce_wrapper db7(.reset(0),.clock(clock_25mhz),.noisy(SW[3]),.clean(gamelvl[3]));
-       debounce_wrapper db71(.reset(0),.clock(clock_25mhz),.noisy(SW[2]),.clean(gamelvl[2]));
-       debounce_wrapper db72(.reset(0),.clock(clock_25mhz),.noisy(SW[1]),.clean(gamelvl[1]));
-       debounce_wrapper db73(.reset(0),.clock(clock_25mhz),.noisy(SW[0]),.clean(gamelvl[0]));
+    //Switches below used to check various functionality during testing
     wire showCam;
         debounce_wrapper dbo5(.reset(0),.clock(clock_25mhz),.noisy(SW[8]),.clean(showCam));
     wire startScreen;
@@ -117,7 +112,6 @@ module fpglappy(
         debounce db83(.reset(0),.clock(clock_25mhz),.noisy(SW[14]),.clean(highScore[3]));
         debounce db84(.reset(0),.clock(clock_25mhz),.noisy(SW[14]),.clean(highScore[4]));
     
-
 
     //Vision tracking player location 
     wire [9:0] player_x, player_y;
@@ -134,9 +128,8 @@ module fpglappy(
     wire [3:0] countdown, randbit;
     wire [6:0] score;
     wire [3:0] state;
-    reg frameupdate;
-    //initial frameupdate = VSYNC_C;
     
+    reg frameupdate; //set frameupdate clock to VSYNC_C, the camera img update rate
     always @(*) begin
         frameupdate <= VSYNC_C;
     end
@@ -160,7 +153,6 @@ module fpglappy(
                   .state(state),
                   .sound_collide(sound_collide), .sound_jump(sound_jump), .sound_background(sound_background));
           
-    //submodules --not tested                     
     physics phys(.clock(clock_25mhz), .updatepos(updatepos), .reset_physics(reset_physics), .up(up),
                  .sixty_hz(sixty_hz), .player_x(player_x), .player_y(player_y), .frameupdate(frameupdate),
                  .jump(jump), .bird_x(bird_x), .bird_y(bird_y), .prev_enable(prev_enable), 
@@ -173,11 +165,10 @@ module fpglappy(
                  .obs1x(obs1x), .obs1y(obs1y), .obs2x(obs2x), .obs2y(obs2y), .obs3x(obs3x), .obs3y(obs3y),
                  .score(score)
                 );
-    
-    //highscore hs(.clock(clock_25mhz), .reset_score(reset_score), .pass(pass), .score(score));
-    
+
     randombit rb(.clock(clock_25mhz), .player_x(player_x), .randbit(randbit));
 
+    //LED outputs for debugging/testing purposes
     assign LED[15] = collision;
     assign LED[14] = jump;
     assign LED[13] = up;
@@ -191,11 +182,9 @@ module fpglappy(
     assign LED[3] = obs2en;
     assign LED[2] = obs3en;
     assign LED[1] = frameupdate;
-    //assign data = {24'h012345, 6'b0, state};
     //////////////////////////////////////////////////////////////////////////////////
-
-
- 
+    
+    /* SD Card access code - not needed due to ability to save needed images, audio and graphics in BRAM */
     wire src_1_req, src_1_done, src_1_rd, src_1_en;
     wire [31:0] src_1_addr;
     wire [7:0] dout;
@@ -207,7 +196,7 @@ module fpglappy(
         .SD_CD(SD_CD),.src_1_en(src_1_en),.dout(dout),.byte_available(byte_available),
         .ready_for_next_byte(ready_for_next_byte),.ready(ready),.SD_RESET(SD_RESET),
         .SD_SCK(SD_SCK),.SD_CMD(SD_CMD),.SD_DAT(SD_DAT));
-
+   
     /* Vision */
     // Wires needed for BRAM
     wire [18:0] addra;
@@ -343,6 +332,9 @@ module debounce #(parameter DELAY=250000)   // .01 sec with a 25Mhz clock
      else count <= count+1; 
 endmodule
 
+//////////////////////////////////////////////////////////////////////////////////
+// debounce_wrapper module: ensures that long button presses != multiple inputs
+//////////////////////////////////////////////////////////////////////////////////
 module debounce_wrapper(input reset, clock, noisy,
                         output reg clean);
     wire clean_nc;
