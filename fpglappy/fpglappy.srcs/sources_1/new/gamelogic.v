@@ -1,138 +1,13 @@
 `timescale 1ns / 1p
 //////////////////////////////////////////////////////////////////////////////////
-// Create Date: 11/17/2015 06:04:04 PM
 // Engineer Name: Wei Low
 // Module Name: gamelogic
 // Project Name: fglappy bird - 6.111 Final Project 
 // Description: This file contains the gamelogic file which references 
-//              gamestate, highscore, physics, 
-//              obstacle_gen, collision_detection,
-//              timer and onehzstart modules
+//              gamestate, obstacle_gen, collision_detection,
+//              physics, timer, randombit, onehzstart and sixtyhzstart modules
 //////////////////////////////////////////////////////////////////////////////////
 
-
-
-//////////////////////////////////////////////////////////////////////////////////
-// High Score module: computes score to be displayed
-//////////////////////////////////////////////////////////////////////////////////
-module highscore(input clock, reset_score, pass,
-                 output reg [6:0] score
-                 );
-       //reg [6:0] prevhs;
-       //initial prevhs = 0;
-       initial score = 0;
-       always @(posedge clock) begin
-            if (reset_score) begin //game has reset, so score is 0
-                score <=0;
-            end
-            else if (pass) begin //add to score for each obstacle bird passes
-                score <= score + 1;
-            end          
-       end
-endmodule
-
-//////////////////////////////////////////////////////////////////////////////////
-// Obstacle Generator module: generates location of the obstacles + scrolls obstacle
-//////////////////////////////////////////////////////////////////////////////////
-module obstacle_gen(input clock, updatepos, [3:0] randbit,
-                    input reset_score, reset_physics,
-                    output obs1en, obs2en, obs3en,
-                    output reg [6:0] score,
-                    output reg[9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y);
-        reg obs1, obs2, obs3;
-        assign obs1en = obs1;
-        assign obs2en = obs2;
-        assign obs3en = obs3;
-        initial obs1 = 0;
-        initial obs2 = 0;
-        initial obs3 = 0;
-        initial score = 0;
-        reg [19:0] pixelscan;
-        initial pixelscan = 0;
-        
-        always @(posedge clock) begin  //144,784 (x) 35,515 (y)
-                                       //each pipe has width 64 bird has width 64
-           if (reset_physics) begin
-                pixelscan <=0;
-                obs1 <=0;
-                obs1x <=800;
-                obs2 <=0;
-                obs2x <=800;
-                obs3 <=0;
-                obs3x <=800;
-                score <= 0;
-           end
-           if (updatepos) begin
-                pixelscan <= (pixelscan<784)? pixelscan+1 : pixelscan; //restart pixelscan counter after 650
-                if (pixelscan==1 && !obs1) begin
-                    obs1 <= 1;
-                    obs1x <=784;
-                end
-                else if (pixelscan==260 && !obs2) begin
-                    obs2 <=1;
-                    obs2x <= 784;
-                end
-                else if (pixelscan==522 && !obs3) begin
-                    obs3 <=1;
-                    obs3x <= 784;
-                end
-                if (obs1) begin
-                    obs1x <= obs1x-1;
-                    if (obs1x<36) begin
-                        obs1x<= 784;
-                        obs1y <= (randbit[2]==1'b0)? 200+(randbit*10):300-(randbit*11);
-                    end
-                    if (obs1x==135) score <= score + 1;
-                end
-                if (obs2) begin
-                    obs2x <= obs2x-1;
-                    if (obs2x<35) begin
-                        obs2y <= (randbit[0]==1'b1)? 300-(randbit*7):125+(randbit*2);
-                        obs2x<= 784;
-                    end
-                    if (obs2x==135) score <= score + 1;
-                end
-                if (obs3) begin
-                    obs3x <= obs3x-1;
-                    if (obs3x<35) begin
-                        obs3x<= 784;
-                        obs3y <=  (randbit[3]==1'b1)? 300-(randbit*4): 50+(randbit*3);
-                    end
-                    if (obs3x==135) score <= score + 1;
-                end
-           end
-           if (!obs1) obs1y <= (randbit[2]==1'b0)? 200+(randbit*10):300-(randbit*11);
-           if (!obs2) obs2y <= (randbit[0]==1'b1)? 300-(randbit*7):125+(randbit*2);
-           if (!obs3) obs3y <= (randbit[3]==1'b1)? 300: 50+(randbit*3);
-           //pass <= (obs1x+64==199)||(obs2x+64==199)||(obs3x+64==199)? 1:0;
-        end
-endmodule
-
-//////////////////////////////////////////////////////////////////////////////////
-// Collision Detection module: detects if a collision has occured
-//////////////////////////////////////////////////////////////////////////////////
-module collision_detection(input clock, updatepos, reset_collision,
-                           input [9:0] bird_x, bird_y, obs1en, obs2en, obs3en,
-                           input [9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y, 
-                           output reg collision);
-        parameter BIRDSIZE = 64, OBSW=64, OBSH=160;
-        always @(posedge clock) begin
-            if (reset_collision) collision <=0;
-            else begin
-                if (updatepos) begin
-                    collision <= (((bird_y+BIRDSIZE >= 505) || (bird_y<=42))
-                    || obs1en&&((((bird_x+BIRDSIZE)>obs1x) && (bird_x<(obs1x+OBSW)))
-                    &&((bird_y<obs1y)||((bird_y+BIRDSIZE)>(obs1y+OBSH))))
-                    || obs2en&&((((bird_x+BIRDSIZE)>obs2x) && (bird_x<(obs2x+OBSW)))
-                    &&((bird_y<obs2y)||((bird_y+BIRDSIZE)>(obs2y+OBSH))))
-                    || obs3en&&((((bird_x+BIRDSIZE)>obs3x) && (bird_x<(obs3x+OBSW)))
-                    &&((bird_y<obs3y)||((bird_y+BIRDSIZE)>(obs3y+OBSH))))
-                    )? 1:0;
-                
-                end
-            end
-        end
-endmodule
 
 //////////////////////////////////////////////////////////////////////////////////
 // Gamestate module: regulates the state of the game (PLAY, WIN, PAUSE, LOSE, HIGH_SCORE)
@@ -184,30 +59,30 @@ module gamestate(input clock, start, reset, jump, collision, expired, one_hz,
                             reset_collision <=0;
                         end
                     end
-                    PLAY: begin //normal state of game
+                    PLAY: begin //play state of game: physics, obstacle gen happens as usual
                         if (collision) begin
                             state <= LOSE;
                             updatepos <=0;
-                            hs_enable <=1;
+                            hs_enable <=1; //
                             sound_collide <=1;
                             start_timer <=1;
                         end
-                        else if (jump) updatepos <=1;
+                        else if (jump) updatepos <=1; //game starts when player jumps
                         else if (start) begin
                             state <= PAUSE;
                             updatepos <=0;
                             pause <=1; //set pause bit to 1
                         end                        
                     end
-                    PAUSE: begin //red filter & movement stops
+                    PAUSE: begin //pause state: red filter & movement stops
                         if (start) begin
                             state <= PLAY;//set pause bit to 0
                             pause <=0;
                             updatepos <=1;
                         end
                     end
-                    LOSE: begin //will display HS
-                        if (start || expired) begin
+                    LOSE: begin //enters lose state, where high score is displayed
+                        if (start || expired) begin //when start button pressed/time expires, goes to splash screen
                             state <= START;
                             reset_score <= 1;
                             reset_physics <=1;
@@ -219,14 +94,124 @@ module gamestate(input clock, start, reset, jump, collision, expired, one_hz,
                     default: state <= START;
                 endcase
                 if (start_timer) start_timer <= 0;
-                //if (sound_collide) sound_collide <= 0;
                 sound_jump <= (jump)? 1:0;
            end
         end
 endmodule
 
+
+//////////////////////////////////////////////////////////////////////////////////
+// Obstacle Generator module: generates location of the obstacles + scrolls obstacle
+//////////////////////////////////////////////////////////////////////////////////
+module obstacle_gen(input clock, updatepos, [3:0] randbit,
+                    input reset_score, reset_physics,
+                    output obs1en, obs2en, obs3en,
+                    output reg [6:0] score,
+                    output reg[9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y);
+        
+        //144,784 (x) 35,515 (y) <== dims of screen
+
+        reg obs1, obs2, obs3;
+        assign obs1en = obs1;
+        assign obs2en = obs2;
+        assign obs3en = obs3;
+        initial obs1 = 0;
+        initial obs2 = 0;
+        initial obs3 = 0;
+        initial score = 0;
+        reg [19:0] pixelscan;
+        initial pixelscan = 0;
+        
+        always @(posedge clock) begin  //note that this clock is vsync, clock rate outputted by vga module
+                                       
+           if (reset_physics) begin
+                pixelscan <=0;
+                obs1 <=0;
+                obs1x <=800;
+                obs2 <=0;
+                obs2x <=800;
+                obs3 <=0;
+                obs3x <=800;
+                score <= 0;
+           end
+           if (updatepos) begin
+                pixelscan <= (pixelscan<784)? pixelscan+1 : pixelscan; //restart pixelscan counter after 784
+                if (pixelscan==1 && !obs1) begin
+                    obs1 <= 1;
+                    obs1x <=784; //place obs1 on very right of screen
+                end
+                else if (pixelscan==260 && !obs2) begin
+                    obs2 <=1;
+                    obs2x <= 784; //place obs2 on very right of screen
+                end
+                else if (pixelscan==522 && !obs3) begin
+                    obs3 <=1;
+                    obs3x <= 784; //place obs3 on very right of screen
+                end
+                if (obs1) begin 
+                    obs1x <= obs1x-1; //move one pixel to the left
+                    if (obs1x<36) begin //if obstacle offscreen, reset x
+                        obs1x<= 784;    //and generate a new y coordinate (that determines y position of gap between pipes)
+                        obs1y <= (randbit[2]==1'b0)? 200+(randbit*10):300-(randbit*11);
+                    end
+                    if (obs1x==135) score <= score + 1; //if bird passes obs, +1 score
+                end
+                if (obs2) begin
+                    obs2x <= obs2x-1;
+                    if (obs2x<35) begin
+                        obs2y <= (randbit[0]==1'b1)? 300-(randbit*7):125+(randbit*2);
+                        obs2x<= 784;
+                    end
+                    if (obs2x==135) score <= score + 1;
+                end
+                if (obs3) begin
+                    obs3x <= obs3x-1;
+                    if (obs3x<35) begin
+                        obs3x<= 784;
+                        obs3y <=  (randbit[3]==1'b1)? 300-(randbit*4): 50+(randbit*3);
+                    end
+                    if (obs3x==135) score <= score + 1;
+                end
+           end
+           //initial setting of y coordinate for obstacle -> determines y position of gap between pipes
+           if (!obs1) obs1y <= (randbit[2]==1'b0)? 200+(randbit*10):300-(randbit*11);
+           if (!obs2) obs2y <= (randbit[0]==1'b1)? 300-(randbit*7):125+(randbit*2);
+           if (!obs3) obs3y <= (randbit[3]==1'b1)? 300: 50+(randbit*3);
+        end
+endmodule
+
+//////////////////////////////////////////////////////////////////////////////////
+// Collision Detection module: detects if a collision has occured
+// used by gamestate module to determine if the player has lost the game
+//////////////////////////////////////////////////////////////////////////////////
+module collision_detection(input clock, updatepos, reset_collision,
+                           input [9:0] bird_x, bird_y, obs1en, obs2en, obs3en,
+                           input [9:0] obs1x, obs1y, obs2x, obs2y, obs3x, obs3y, 
+                           output reg collision);
+
+        parameter BIRDSIZE = 64, OBSW=64, OBSH=160;
+
+        always @(posedge clock) begin
+            if (reset_collision) collision <=0;
+            else begin
+                if (updatepos) begin //Only check for collisions if the game is active
+                    collision <= (((bird_y+BIRDSIZE >= 505) || (bird_y<=42)) //checks if bird is within the bounds of the screen
+                    || obs1en&&((((bird_x+BIRDSIZE)>obs1x) && (bird_x<(obs1x+OBSW))) //checks if bird passes through the space
+                    &&((bird_y<obs1y)||((bird_y+BIRDSIZE)>(obs1y+OBSH))))            //between the top and bottom part of the pipe
+                    || obs2en&&((((bird_x+BIRDSIZE)>obs2x) && (bird_x<(obs2x+OBSW)))
+                    &&((bird_y<obs2y)||((bird_y+BIRDSIZE)>(obs2y+OBSH))))
+                    || obs3en&&((((bird_x+BIRDSIZE)>obs3x) && (bird_x<(obs3x+OBSW)))
+                    &&((bird_y<obs3y)||((bird_y+BIRDSIZE)>(obs3y+OBSH))))
+                    )? 1:0;
+                end
+            end
+        end
+endmodule
+
+
 //////////////////////////////////////////////////////////////////////////////////
 // Physics module: sets rate of bird movement (jumping/falling)
+// used for determining player's next position following presence or lack of jump 
 //////////////////////////////////////////////////////////////////////////////////
 module physics(input clock, updatepos, reset_physics,
                input sixty_hz, frameupdate, up,
@@ -307,7 +292,7 @@ endmodule
 module timer(input clock, start_timer, one_hz,
              output reg expired, reg[2:0] countdown
              );
-    parameter TIME_DELAY = 5; //waits 3 seconds before restarting the game
+    parameter TIME_DELAY = 5; //waits 5 seconds before restarting the game
     initial expired = 0;
     reg enable;
     initial enable = 0;
@@ -343,7 +328,6 @@ module randombit(input clock, input [9:0] player_x,
     
     wire [3:0] randbit;
     assign randbit = player_x[3:0];
-     
 endmodule
 
 //////////////////////////////////////////////////////////////////////////////////
